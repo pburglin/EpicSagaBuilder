@@ -10,10 +10,12 @@ import StoryDetails from './pages/StoryDetails';
 import CreateCharacter from './pages/CreateCharacter';
 import StorySession from './pages/StorySession';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 function App() {
   return (
     <AuthProvider>
+      <ThemeProvider>
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -27,6 +29,7 @@ function App() {
           <Route path="/stories/:id/session" element={<StorySession />} />
         </Routes>
       </Router>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

@@ -100,7 +100,7 @@ export default function StoryDetails() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8"> 
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
             <img
               src={story.imageUrl}
               alt={story.title}
@@ -108,7 +108,7 @@ export default function StoryDetails() {
             />
             <div className="p-8">
               <div className="flex items-center justify-between mb-6">
-                <h1 className="text-3xl font-bold">{story.title}</h1>
+                <h1 className="text-3xl font-bold dark:text-gray-100">{story.title}</h1>
                 <span className={`px-4 py-2 rounded-full text-sm font-medium ${
                   story.status === 'active'
                     ? 'bg-green-100 text-green-800'
@@ -118,27 +118,27 @@ export default function StoryDetails() {
                 </span>
               </div>
 
-              <p className="text-gray-600 mb-6">{story.description}</p>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">{story.description}</p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                 <div>
-                  <h2 className="text-xl font-semibold mb-4">Main Quest</h2>
-                  <p className="text-gray-600">{story.mainQuest}</p>
+                  <h2 className="text-xl font-semibold mb-4 dark:text-gray-100">Main Quest</h2>
+                  <p className="text-gray-600 dark:text-gray-400">{story.mainQuest}</p>
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold mb-4">Starting Scene</h2>
-                  <p className="text-gray-600">{story.startingScene}</p>
+                  <h2 className="text-xl font-semibold mb-4 dark:text-gray-100">Starting Scene</h2>
+                  <p className="text-gray-600 dark:text-gray-400">{story.startingScene}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                 <div>
-                  <h2 className="text-xl font-semibold mb-4">Available Classes</h2>
+                  <h2 className="text-xl font-semibold mb-4 dark:text-gray-100">Available Classes</h2>
                   <div className="flex flex-wrap gap-2"> 
                     {(story.characterClasses || []).map((className) => (
                       <span
                         key={className}
-                        className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm"
+                        className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-200 rounded-full text-sm"
                       >
                         {className}
                       </span>
@@ -146,12 +146,12 @@ export default function StoryDetails() {
                   </div>
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold mb-4">Available Races</h2>
+                  <h2 className="text-xl font-semibold mb-4 dark:text-gray-100">Available Races</h2>
                   <div className="flex flex-wrap gap-2">
                     {(story.characterRaces || []).map((race) => (
                       <span
                         key={race}
-                        className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+                        className="px-3 py-1 bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-200 rounded-full text-sm"
                       >
                         {race}
                       </span>
@@ -161,13 +161,13 @@ export default function StoryDetails() {
               </div>
 
               <div className="mb-8">
-                <h2 className="text-xl font-semibold mb-4">
+                <h2 className="text-xl font-semibold mb-4 dark:text-gray-100">
                   {story.status === 'completed' ? 'Story Characters' : 'Current Characters'}
                 </h2>
                 {story.characters.filter(char => 
                   story.status === 'completed' ? true : char.status === 'active'
                 ).length === 0 ? (
-                  <p className="text-gray-500">
+                  <p className="text-gray-500 dark:text-gray-400">
                     {story.status === 'completed' 
                       ? 'No characters participated in this story.'
                       : 'No characters yet. Be the first to join!'}
@@ -180,17 +180,19 @@ export default function StoryDetails() {
                       <div
                         key={character.id}
                         className={`flex items-center space-x-3 p-3 rounded-lg ${
-                          character.status === 'archived' ? 'bg-gray-100' : 'bg-gray-50'
+                          character.status === 'archived'
+                            ? 'bg-gray-100 dark:bg-gray-700/50'
+                            : 'bg-gray-50 dark:bg-gray-700/30'
                         }`}
                       >
                         <img
                           src={character.imageUrl}
                           alt={character.name}
-                          className="w-12 h-12 rounded-full object-cover"
+                          className="w-12 h-12 rounded-full object-cover border dark:border-gray-600"
                         />
                         <div>
-                          <h3 className="font-medium">{character.name}</h3>
-                          <p className="text-sm text-gray-600">
+                          <h3 className="font-medium dark:text-gray-100">{character.name}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
                             {character.race} {character.class}
                             {character.status === 'archived' && ' (Archived)'}
                           </p>
@@ -205,7 +207,7 @@ export default function StoryDetails() {
                 <button
                   onClick={handleJoinStory}
                   disabled={joiningStory}
-                  className="w-full bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                  className="w-full bg-indigo-600 dark:bg-indigo-700 text-white py-3 px-4 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-800 disabled:opacity-50"
                 >
                   {joiningStory ? 'Processing...' :
                    !user ? 'Sign In to Join Story' :
@@ -218,10 +220,10 @@ export default function StoryDetails() {
             
             {/* Story Messages - Only shown for completed stories */}
             {story.status === 'completed' && (
-              <div className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden">
+              <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
                 <div className="p-6 border-b">
-                  <h2 className="text-xl font-semibold">Story Chronicle</h2>
-                  <p className="text-gray-600 mt-2">
+                  <h2 className="text-xl font-semibold dark:text-gray-100">Story Chronicle</h2>
+                  <p className="text-gray-600 dark:text-gray-400 mt-2">
                     The complete tale of this epic adventure, from beginning to end.
                   </p>
                 </div>

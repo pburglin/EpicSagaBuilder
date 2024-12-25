@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { getProfile, createProfile, updateProfile } from '../lib/user-service';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 export default function Profile() {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -115,6 +117,27 @@ export default function Profile() {
                 className="w-full px-3 py-2 border rounded-md"
                 placeholder="https://example.com/avatar.jpg"
               />
+            </div>
+
+            <div className="border-t pt-6 mt-6">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                Appearance
+              </h3>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700 dark:text-gray-300">Dark Mode</span>
+                <button
+                  onClick={toggleTheme}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                    theme === 'dark' ? 'bg-indigo-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
 
             {error && (

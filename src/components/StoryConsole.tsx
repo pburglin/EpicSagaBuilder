@@ -102,7 +102,7 @@ export default function StoryConsole({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-4 space-y-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 space-y-4">
       {/* Status Bar */}
       <div className="flex items-center justify-between">
         <div className={`flex items-center space-x-2 ${timer >= 60 ? 'text-red-600 animate-pulse' : 'text-gray-600'}`}>
@@ -110,7 +110,7 @@ export default function StoryConsole({
           <span>{Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}</span>
         </div>
         {!isEnabled && (
-          <span className="text-sm text-gray-500 italic">
+          <span className="text-sm text-gray-500 dark:text-gray-400 italic">
             {getWaitingMessage()}
           </span>
         )}
@@ -137,12 +137,12 @@ export default function StoryConsole({
           onChange={(e) => setMessage(e.target.value)}
           placeholder={`What does ${character.name} do?`}
           disabled={!isEnabled}
-          className="flex-grow px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-grow px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
         />
         <button
           type="submit"
           disabled={!isEnabled}
-          className="bg-indigo-600 text-white p-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-indigo-600 text-white p-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-indigo-700 dark:hover:bg-indigo-800"
         >
           <Send className="h-5 w-5" />
         </button>

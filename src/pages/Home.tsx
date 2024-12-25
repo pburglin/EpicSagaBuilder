@@ -35,7 +35,7 @@ export default function Home() {
       
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-20">
+        <section className="bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-800 dark:to-purple-800 text-white py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <BookOpen className="h-16 w-16 mx-auto mb-6" />
@@ -64,13 +64,13 @@ export default function Home() {
         </section>
 
         {/* Featured Stories */}
-        <section className="py-16 bg-gray-50">
+        <section className="py-16 bg-gray-50 dark:bg-gray-900">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">Featured Stories</h2>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">Featured Stories</h2>
             {loading ? (
-              <div className="text-center text-gray-600">Loading stories...</div>
+              <div className="text-center text-gray-600 dark:text-gray-400">Loading stories...</div>
             ) : stories.length === 0 ? (
-              <div className="text-center text-gray-600">
+              <div className="text-center text-gray-600 dark:text-gray-400">
                 No stories available. Be the first to create one!
               </div>
             ) : (
