@@ -96,7 +96,7 @@ The database structure is defined in migration files under `supabase/migrations/
 ### Prerequisites
 
 1. Node.js 18+ and npm
-2. GPT4All with "Llama 3.2 3B Instruct" model
+2. GPT4All with a LLM model (tested with "Llama 3.2 3B Instruct")
 3. Supabase account (free tier works fine)
 4. Git (optional, for version control)
 
@@ -128,11 +128,12 @@ Edit \`.env\` file:
 \`\`\`env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+# Set VITE_USE_MOCK_LLM to false to integrate with a LLM API
+VITE_USE_MOCK_LLM=true
 VITE_LLM_API_ENDPOINT=http://localhost:4891/v1/chat/completions
 VITE_LLM_MAX_TOKENS=128
 VITE_LLM_MODEL_NAME="Llama 3.2 3B Instruct"
 VITE_LLM_MAX_HISTORY=10
-VITE_USE_MOCK_LLM=false
 VITE_LLM_SYSTEM_PROMPT="You are a skilled RPG game master..."
 \`\`\`
 
@@ -225,7 +226,7 @@ For production deployment:
 
 ### Local Development
 - Node.js 18+
-- GPT4All with Llama 3.2 3B Instruct model
+- GPT4All with a LLM model (tested with "Llama 3.2 3B Instruct")
 - Supabase (free tier)
 - Modern web browser
 
@@ -240,8 +241,8 @@ For production deployment:
 
 ## Support
 
-For issues and feature requests, please create an issue in the GitHub repository or contact support@epicsagabuilder.com.
+For issues and feature requests, please create an issue in the GitHub repository.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the GNU AFFERO GENERAL PUBLIC LICENSE - see the LICENSE file for details.
