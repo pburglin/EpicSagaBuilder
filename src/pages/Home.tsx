@@ -54,7 +54,7 @@ export default function Home() {
                 </Link>
                 <Link
                   to="/stories"
-                  className="border border-white text-white px-6 py-3 rounded-md font-medium hover:bg-white/10"
+                  className="bg-white text-indigo-600 px-6 py-3 rounded-md font-medium hover:bg-gray-100"
                 >
                   Join a Story
                 </Link>

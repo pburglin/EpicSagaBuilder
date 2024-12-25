@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Send, Timer, LogOut, CheckCircle } from 'lucide-react';
+import { Send, Timer, LogOut, CheckCircle, Swords, Target, ArrowRight, Heart, Users, Search, Moon } from 'lucide-react';
 import { Character } from '../types';
 import { getEstimatedProgress } from '../lib/llm-store';
 
@@ -11,16 +11,6 @@ interface StoryConsoleProps {
   onCompleteStory: () => void;
   isEnabled: boolean;
 }
-
-const QUICK_ACTIONS = [
-  'attack melee',
-  'attack ranged',
-  'flee',
-  'heal self',
-  'heal friend',
-  'detect traps',
-  'rest'
-];
 
 export default function StoryConsole({ 
   story,
@@ -35,6 +25,16 @@ export default function StoryConsole({
   const [progressStartTime, setProgressStartTime] = useState<number | null>(null);
   const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null);
   const [progress, setProgress] = useState(0);
+  
+  const QUICK_ACTIONS = [
+    { action: 'attack melee', icon: Swords },
+    { action: 'attack ranged', icon: Target },
+    { action: 'flee', icon: ArrowRight },
+    { action: 'heal self', icon: Heart },
+    { action: 'heal friend', icon: Users },
+    { action: 'detect traps', icon: Search },
+    { action: 'rest', icon: Moon }
+  ];
 
   useEffect(() => {
     if (isEnabled) {
@@ -105,7 +105,9 @@ export default function StoryConsole({
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 space-y-4">
       {/* Status Bar */}
       <div className="flex items-center justify-between">
-        <div className={`flex items-center space-x-2 ${timer >= 60 ? 'text-red-600 animate-pulse' : 'text-gray-600'}`}>
+        <div className={`flex items-center space-x-2 ${
+          timer >= 60 ? 'text-red-600 animate-pulse' : 'text-gray-600 dark:text-gray-400'
+        }`}>
           <Timer className="h-5 w-5" />
           <span>{Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}</span>
         </div>
@@ -117,13 +119,18 @@ export default function StoryConsole({
       </div>
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-2">
-        {QUICK_ACTIONS.map(action => (
+        {QUICK_ACTIONS.map(({ action, icon: Icon }) => (
           <button
             key={action}
             onClick={() => handleQuickAction(action)}
             disabled={!isEnabled}
-            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${
+              isEnabled
+                ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-500'
+            }`}
           >
+            <Icon className="h-4 w-4" />
             {action}
           </button>
         ))}
