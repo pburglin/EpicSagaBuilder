@@ -1,0 +1,57 @@
+import { Story, Character } from '../types';
+
+export function generateSystemPrompt(story: Story): string {
+  const charactersInfo = story.characters
+    .map(char => `${char.name} (${char.race} ${char.class}): ${char.description}`)
+    .join('\n');
+
+  return `You are a skilled RPG game master and storyteller. Your role is to create engaging, dynamic narratives based on player actions while maintaining consistency with the game world and character abilities. Respond to player actions with vivid descriptions and appropriate consequences, keeping the story balanced and entertaining. Never take control of player characters or make decisions for them.
+
+Story: ${story.title}
+Description: ${story.description}
+Main Quest: ${story.mainQuest}
+
+Characters:
+${charactersInfo}`;
+}
+
+export function generateActionPrompt(
+  currentScene: string,
+  characterActions: { character: Character; action: string }[]
+): string {
+  const actionsDescription = characterActions
+    .map(({ character, action }) => `${character.name}: ${action}`)
+    .join('\n');
+
+  return `Current Scene:
+${currentScene}
+
+Character Actions:
+${actionsDescription}
+
+Describe the outcome of these actions and the resulting scene.`;
+}
+
+export function generateFinalePrompt(story: Story): string {
+  const charactersInfo = story.characters
+    .filter(char => char.status === 'active')
+    .map(char => `- ${char.name} (${char.race} ${char.class})`)
+    .join('\n');
+
+  return `Create an epic and memorable finale for the story "${story.title}".
+
+Context:
+- Story: ${story.description}
+- Main Quest: ${story.mainQuest}
+
+Active Heroes:
+${charactersInfo}
+
+Create a dramatic conclusion that:
+1. Resolves the main quest
+2. Acknowledges each character's unique contributions
+3. Provides a satisfying ending worthy of legend
+4. Leaves a lasting impact on the world
+
+Make it epic, emotional, and memorable!`;
+}
