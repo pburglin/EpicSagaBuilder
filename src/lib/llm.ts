@@ -1,4 +1,5 @@
 import { Story } from '../types';
+import { loadStoryMessages } from './story-service';
 import { updateLastResponseTime } from './llm-store';
 
 interface LLMMessage {
@@ -24,9 +25,30 @@ interface LLMResponse {
 // Message history management
 let messageHistory: LLMMessage[] = [];
 
-export async function initializeMessageHistory(systemPrompt: string): Promise<void> {
+export async function initializeMessageHistory(systemPrompt: string, storyId: string): Promise<void> {
   console.log('Initializing message history with system prompt');
-  messageHistory = [{ role: 'system', content: systemPrompt }];
+  
+  // Load all narrator messages from the story
+  const storyMessages = await loadStoryMessages(storyId);
+  const narratorMessages = storyMessages
+    .filter(msg => msg.type === 'narrator')
+    .map(msg => ({
+      role: 'assistant' as const,
+      content: msg.content
+    }));
+
+  // Initialize history with system prompt and narrator messages
+  messageHistory = [
+    { role: 'system', content: systemPrompt },
+    ...narratorMessages
+  ];
+
+  console.log('Message history initialized with:', {
+    totalMessages: messageHistory.length,
+    narratorMessages: narratorMessages.length
+  });
+
+  console.log('messageHistory: ', messageHistory);
 }
 
 async function getMessageHistory(): Promise<LLMMessage[]> {

@@ -2,8 +2,8 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import type { Message } from '../types';
 
-const REALTIME_CHANGES_TIMEOUT = 50; // Reduced from 100ms to 50ms for faster updates
-const MESSAGE_BATCH_SIZE = 3; // Reduced batch size for more frequent updates
+const REALTIME_CHANGES_TIMEOUT = 1000; // 1000ms
+const MESSAGE_BATCH_SIZE = 10; // Reduced batch size for more frequent updates
 
 export function subscribeToStoryMessages(
   storyId: string,

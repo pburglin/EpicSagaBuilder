@@ -13,7 +13,7 @@ export class LLMFactory {
     }
 
     console.log('Using Real LLM Service');
-    await initializeMessageHistory(generateSystemPrompt(story));
+    await initializeMessageHistory(generateSystemPrompt(story), story.id);
     return {
       generateResponse: async (type: 'action' | 'finale', prompt: string) => {
         return generateNarration(prompt);
