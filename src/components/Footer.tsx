@@ -8,7 +8,7 @@ export default function Footer() {
           <Link to="/faq" className="text-gray-600 hover:text-gray-900">FAQ</Link>
           <Link to="/terms" className="text-gray-600 hover:text-gray-900">Terms of Use</Link>
           <a 
-            href="https://github.com/yourusername/epic-saga-builder" 
+            href="https://github.com/pburglin/EpicSagaBuilder" 
             target="_blank" 
             rel="noopener noreferrer"
             className="text-gray-600 hover:text-gray-900"

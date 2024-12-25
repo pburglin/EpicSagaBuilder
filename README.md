@@ -241,7 +241,7 @@ For production deployment:
 
 ## Support
 
-For issues and feature requests, please create an issue in the GitHub repository.
+For issues and feature requests, please create an issue in the GitHub repository (https://github.com/pburglin/EpicSagaBuilder).
 
 ## License
 
