@@ -101,3 +101,29 @@ export async function getUserCharacterInStory(userId: string, storyId: string): 
     status: data.status || 'active'
   };
 }
+
+export async function getCharacterInStory(characterId: string, storyId: string): Promise<Character | null> {
+  const { data, error } = await supabase
+    .from('characters')
+    .select()
+    .eq('character_id', characterId)
+    .eq('story_id', storyId)
+    .maybeSingle();
+
+  if (error || !data) {
+    console.log('No character found:', { error, data });
+    return null;
+  }
+
+  return {
+    id: data.id,
+    name: data.name,
+    class: data.class,
+    race: data.race,
+    description: data.description,
+    imageUrl: data.image_url || '',
+    userId: data.user_id,
+    storyId: data.story_id,
+    status: data.status || 'active'
+  };
+}

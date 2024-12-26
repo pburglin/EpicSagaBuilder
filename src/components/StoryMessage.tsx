@@ -38,6 +38,9 @@ export default function StoryMessage({ content, type, character, timestamp }: St
     }
   }
 
+  // TODO - check character.id, then load up details
+  console.log('TAG character:', character);
+
   return (
     <div className={`p-4 ${
       type === 'narrator' 
@@ -49,20 +52,31 @@ export default function StoryMessage({ content, type, character, timestamp }: St
       {type === 'character' ? (
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0">
-            <img
-              src={character?.imageUrl}
-              alt={character?.name}
-              className="w-12 h-12 rounded-full border-2 border-indigo-100 dark:border-indigo-900"
-            />
+            {character ? (
+              <img
+                src={character.imageUrl}
+                alt={character.name}
+                className="w-12 h-12 rounded-full border-2 border-indigo-100 dark:border-indigo-900"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                <span className="text-gray-400 dark:text-gray-500">?</span>
+              </div>
+            )}
           </div>
           <div className="flex-grow">
             <div className="flex items-baseline gap-2 mb-1">
-              <span className="font-semibold text-indigo-900 dark:text-indigo-300">{character?.name}</span>
+              <span className="font-semibold text-indigo-900 dark:text-indigo-300">
+                {character?.name || 'Unknown Character'}
+              </span>
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                {character?.race} {character?.class} • {formatTimestamp(timestamp)}
+                {character ? `${character.race} ${character.class} • ` : ''}
+                {formatTimestamp(timestamp)}
               </span>
             </div>
-            <p className="text-gray-800 dark:text-gray-200">{content}</p>
+            <p className="text-gray-800 dark:text-gray-200">
+              {content}
+            </p>
           </div>
         </div>
       ) : (

@@ -48,13 +48,13 @@ export default function Home() {
               <div className="flex justify-center space-x-4">
                 <Link
                   to="/stories/new"
-                  className="bg-white text-indigo-600 px-6 py-3 rounded-md font-medium hover:bg-gray-100"
+                  className="bg-white text-indigo-600 dark:bg-indigo-600 dark:text-white px-6 py-3 rounded-md font-medium hover:bg-gray-100 dark:hover:bg-indigo-700 transition-colors duration-200"
                 >
                   Create New Story
                 </Link>
                 <Link
                   to="/stories"
-                  className="bg-white text-indigo-600 px-6 py-3 rounded-md font-medium hover:bg-gray-100"
+                  className="bg-white text-indigo-600 dark:bg-indigo-600 dark:text-white px-6 py-3 rounded-md font-medium hover:bg-gray-100 dark:hover:bg-indigo-700 transition-colors duration-200"
                 >
                   Join a Story
                 </Link>

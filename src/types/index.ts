@@ -41,4 +41,5 @@ export interface Message {
   characterId: string | null;
   createdAt: string;
   storyId: string;
+  character?: Character;
 }

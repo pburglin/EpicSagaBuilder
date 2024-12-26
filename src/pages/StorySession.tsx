@@ -12,6 +12,7 @@ import { StorySessionManager } from '../lib/session-manager';
 import { subscribeToStoryMessages } from '../lib/supabase-realtime';
 import { loadStoryWithCharacters, loadStoryMessages, completeStory, sendCharacterMessage, restartStory } from '../lib/story-service';
 import { archiveCharacter } from '../lib/character-service';
+import { getCharacterInStory } from '../lib/character-service';
 
 import type { Message } from '../types';
 
@@ -116,7 +117,15 @@ export default function StorySession() {
         subscriptionRef.current = subscribeToStoryMessages(
           id!,
           (newMessage) => {
-            console.log('Received new message:', newMessage);
+            console.log('AAA Received new message:', newMessage);
+
+            // load character details
+
+            newMessage.character = loadedStory.characters.find(newMessage.characterId);
+
+            //newMessage.character = getCharacterInStory(newMessage.characterId, newMessage.storyId);
+            console.log('AAA newMessage:', newMessage);
+
             setMessages(prev => {
               // Check if message already exists
               if (prev.some(msg => msg.id === newMessage.id)) {
@@ -317,44 +326,42 @@ export default function StorySession() {
               <div className="flex items-center justify-between mb-4">
                 <h1 className="text-2xl font-bold">{story.title}</h1>
                 <div className="flex space-x-2">
-                  {speechSupportedRef.current && (
+                  <div className="flex items-center space-x-2">
+                    {speechSupportedRef.current && (
                     <button
                       onClick={handleNarrationToggle}
-                      className={`px-4 py-2 rounded-md flex items-center space-x-2 ${
+                      title={isNarrationEnabled ? "Disable Audio Narration" : "Enable Audio Narration"}
+                      className={`p-2 rounded-md hover:bg-opacity-80 transition-colors ${
                         isNarrationEnabled
                           ? 'bg-indigo-600 text-white hover:bg-indigo-700'
                           : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                       }`}
                     >
-                      {isNarrationEnabled ? (
-                        <Volume2 className="h-5 w-5" />
-                      ) : (
-                        <VolumeX className="h-5 w-5" />
-                      )}
-                      <span>Audio Narration</span>
+                      {isNarrationEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
                     </button>
-                  )}
-                  <button
-                    onClick={handleRestartStory}
-                    className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 flex items-center space-x-2"
-                  >
-                    <RotateCcw className="h-5 w-5" />
-                    <span>Restart Story</span>
-                  </button>
-                  <button
-                    onClick={handleLeaveStory}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center space-x-2"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    <span>Leave Story</span>
-                  </button>
-                  <button
-                    onClick={handleCompleteStory}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center space-x-2"
-                  >
-                    <CheckCircle className="h-5 w-5" />
-                    <span>Complete Story</span>
-                  </button>                  
+                    )}
+                    <button
+                      onClick={handleRestartStory}
+                      title="Restart Story"
+                      className="p-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors"
+                    >
+                      <RotateCcw className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={handleLeaveStory}
+                      title="Leave Story"
+                      className="p-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                    >
+                      <LogOut className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={handleCompleteStory}
+                      title="Complete Story"
+                      className="p-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                    >
+                      <CheckCircle className="h-5 w-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -367,15 +374,17 @@ export default function StorySession() {
               <div className="flex flex-col">
                 {messages
                   .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-                  .map((message) => (
-                  <StoryMessage
-                    key={message.id}
-                    content={message.content}
-                    type={message.type}
-                    character={message.characterId ? story.characters.find(c => c.id === message.characterId) : undefined}
-                    timestamp={message.createdAt}
-                  />
-                ))}
+                  .map((message) => {
+                    return (
+                      <StoryMessage
+                        key={message.id}
+                        content={message.content}
+                        type={message.type}
+                        character={message.character}
+                        timestamp={message.createdAt}
+                      />
+                    );
+                  })}
               </div>
             </div>
 

@@ -115,7 +115,25 @@ export async function getFeaturedStories(limit: number = 3): Promise<Story[]> {
 export async function loadStoryMessages(storyId: string): Promise<Message[]> {
   const { data, error } = await supabase
     .from('story_messages')
-    .select('*')
+    .select(`
+      id,
+      content,
+      type,
+      character_id,
+      created_at,
+      story_id,
+      characters (
+        id,
+        name,
+        class,
+        race,
+        description,
+        image_url,
+        user_id,
+        story_id,
+        status
+      )
+    `)
     .eq('story_id', storyId)
     .order('created_at', { ascending: true });
 
@@ -129,7 +147,18 @@ export async function loadStoryMessages(storyId: string): Promise<Message[]> {
     type: message.type,
     characterId: message.character_id,
     createdAt: message.created_at,
-    storyId: message.story_id
+    storyId: message.story_id,
+    character: message.characters ? {
+      id: message.characters.id,
+      name: message.characters.name,
+      class: message.characters.class,
+      race: message.characters.race,
+      description: message.characters.description,
+      imageUrl: message.characters.image_url || '',
+      userId: message.characters.user_id,
+      storyId: message.characters.story_id,
+      status: message.characters.status
+    } : undefined
   }));
 }
 
@@ -192,13 +221,31 @@ export async function sendCharacterMessage(
 
   const { data, error } = await supabase
     .from('story_messages')
-    .insert({
+    .insert([{
       story_id: storyId,
       character_id: characterId,
       content,
       type: 'character'
-    })
-    .select()
+    }])
+    .select(`
+      id,
+      content,
+      type,
+      character_id,
+      created_at,
+      story_id,
+      characters (
+        id,
+        name,
+        class,
+        race,
+        description,
+        image_url,
+        user_id,
+        story_id,
+        status
+      )
+    `)
     .single();
 
   if (error || !data) {
@@ -207,7 +254,25 @@ export async function sendCharacterMessage(
 
   console.log('Character message sent:', data.id);
   
-  return data;
+  return {
+    id: data.id,
+    content: data.content,
+    type: data.type,
+    characterId: data.character_id,
+    createdAt: data.created_at,
+    storyId: data.story_id,
+    character: data.character_id && data.characters ? {
+      id: data.characters.id,
+      name: data.characters.name,
+      class: data.characters.class,
+      race: data.characters.race,
+      description: data.characters.description,
+      imageUrl: data.characters.image_url || '',
+      userId: data.characters.user_id,
+      storyId: data.characters.story_id,
+      status: data.characters.status
+    } : undefined
+  };
 }
 
 export async function sendNarratorMessage(
