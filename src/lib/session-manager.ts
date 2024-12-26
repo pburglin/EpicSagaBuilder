@@ -26,10 +26,13 @@ export class StorySessionManager {
   }
 
   async submitAction(character: Character, action: string): Promise<void> {
+    // Format action with character prefix
+    const formattedAction = `${character.name} will ${action}`;
+    
     this.pendingActions.set(character.id, { character, action });
 
     // Send character message immediately
-    await sendCharacterMessage(this.story.id, character.id, action);
+    await sendCharacterMessage(this.story.id, character.id, formattedAction);
 
     // Check if all active characters have submitted actions
     const activeCharacters = this.story.characters.filter(char => char.status === 'active');

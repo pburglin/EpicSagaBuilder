@@ -2,105 +2,75 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import type { Message } from '../types';
 
-const REALTIME_CHANGES_TIMEOUT = 1000; // 1000ms
-const MESSAGE_BATCH_SIZE = 10; // Reduced batch size for more frequent updates
+const BROADCAST_CHANNEL = 'story_updates';
 
 export function subscribeToStoryMessages(
   storyId: string,
   onMessage: (message: Message) => void,
   onError: (error: Error) => void
 ): RealtimeChannel {
-  let pendingMessages: Message[] = [];
-  let batchTimeoutId: NodeJS.Timeout | null = null;
+  console.log('Setting up real-time subscription for story:', storyId);
 
-  function processPendingMessages() {
-    if (pendingMessages.length === 0) return;
+  // Create a unique channel name for this story
+  const channelName = `story:${storyId}`;
+  
+  const channel = supabase.channel(channelName);
 
-    // Sort messages by timestamp
-    const sortedMessages = [...pendingMessages].sort(
-      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    );
+  // Handle broadcast messages
+  channel.on('broadcast', { event: 'message' }, (payload) => {
+    try {
+      if (payload.payload.storyId !== storyId) return;
 
-    // Process messages immediately
-    sortedMessages.forEach(msg => {
-      console.log('Processing message:', msg.id);
-      onMessage(msg);
-    });
-    
-    pendingMessages = [];
-  }
+      const message = payload.payload as Message;
+      console.log('Received broadcast message:', {
+        id: message.id,
+        type: message.type,
+        timestamp: new Date().toISOString()
+      });
 
-  const channel = supabase
-    .channel(`story_messages_${storyId}`) // Unique channel per story
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'story_messages',
-        filter: `story_id=eq.${storyId}`
-      },
-      (payload) => {
-        try {
-          const newMessage = payload.new as Message;
-          
-          // Validate message
-          if (!newMessage.id || !newMessage.content || !newMessage.type) {
-            throw new Error('Invalid message format received');
-          }
-          
-          console.log('Received new message:', newMessage.id);
-          
-          // Add message to pending batch
-          pendingMessages.push(newMessage);
+      onMessage(message);
+    } catch (error) {
+      console.error('Error processing broadcast message:', error);
+      onError(error instanceof Error ? error : new Error('Unknown error processing message'));
+    }
+  });
 
-          // Clear existing timeout
-          if (batchTimeoutId) {
-            clearTimeout(batchTimeoutId);
-          }
+  // Subscribe with error handling and reconnection logic
+  let retryCount = 0;
+  const maxRetries = 5;
+  const retryDelay = 2000;
 
-          // Process immediately if batch size reached
-          if (pendingMessages.length >= MESSAGE_BATCH_SIZE) {
-            console.log('Processing batch immediately');
-            processPendingMessages();
-          } else {
-            // Set short timeout for remaining messages
-            batchTimeoutId = setTimeout(() => {
-              console.log('Processing batch after timeout');
-              processPendingMessages();
-            }, REALTIME_CHANGES_TIMEOUT);
-          }
-        } catch (error) {
-          console.error('Error processing message:', error);
-          onError(error instanceof Error ? error : new Error('Unknown error processing message'));
-        }
-      }
-    );
-
-  // Subscribe with presence enabled for better reliability
-  const subscription = channel
-    .subscribe((status) => {
+  function subscribe() {
+    channel.subscribe((status) => {
       console.log('Subscription status:', status);
-      
+
       if (status === 'SUBSCRIBED') {
         console.log('Successfully subscribed to story messages');
-      }
-      
-      if (status === 'CHANNEL_ERROR') {
+        retryCount = 0;
+      } else if (status === 'CHANNEL_ERROR') {
         console.error('Channel error occurred');
-        onError(new Error('Failed to subscribe to story messages'));
+        
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`Retrying subscription (${retryCount}/${maxRetries})...`);
+          
+          setTimeout(() => {
+            console.log('Attempting to resubscribe...');
+            subscribe();
+          }, retryDelay * retryCount);
+        } else {
+          onError(new Error('Failed to maintain connection after multiple attempts'));
+        }
+      } else if (status === 'TIMED_OUT') {
+        console.error('Channel subscription timed out');
+        onError(new Error('Connection timed out'));
       }
     });
+  }
 
-  // Add cleanup to the subscription
-  const originalUnsubscribe = subscription.unsubscribe;
-  subscription.unsubscribe = () => {
-    if (batchTimeoutId) {
-      clearTimeout(batchTimeoutId);
-      processPendingMessages(); // Process any remaining messages
-    }
-    return originalUnsubscribe.call(subscription);
-  };
+  // Start subscription
+  subscribe();
 
-  return subscription;
+  // Return channel for cleanup
+  return channel;
 }

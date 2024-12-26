@@ -144,6 +144,45 @@ export async function completeStory(storyId: string): Promise<void> {
   }
 }
 
+export async function restartStory(storyId: string): Promise<void> {
+  console.log('Starting story restart for:', storyId);
+
+  const { data: messages, error: loadError } = await supabase
+    .from('story_messages')
+    .select('*')
+    .eq('story_id', storyId)
+    .order('created_at', { ascending: true });
+
+  if (loadError) {
+    console.error('Failed to load messages:', loadError);
+    throw new Error('Failed to load story messages');
+  }
+
+  console.log('Loaded messages:', messages.length);
+
+  // Keep only the first 3 messages
+  const messagesToDelete = messages.slice(3);
+  
+  if (messagesToDelete.length === 0) {
+    console.log('No messages to delete');
+    return; // Nothing to delete
+  }
+
+  console.log('Deleting messages:', messagesToDelete.length);
+
+  const { error: deleteError } = await supabase
+    .from('story_messages')
+    .delete({ returning: 'minimal' })
+    .in('id', messagesToDelete.map(msg => msg.id))
+    .eq('story_id', storyId); // Add story_id check for additional security
+
+  if (deleteError) {
+    console.error('Failed to delete messages:', deleteError);
+    throw new Error('Failed to restart story');
+  }
+
+  console.log('Successfully deleted messages');
+}
 export async function sendCharacterMessage(
   storyId: string,
   characterId: string,
@@ -167,6 +206,10 @@ export async function sendCharacterMessage(
   }
 
   console.log('Character message sent:', data.id);
+  
+  // Broadcast the message
+  await broadcastMessage(data);
+  
   return data;
 }
 
@@ -191,5 +234,25 @@ export async function sendNarratorMessage(
   }
 
   console.log('Narrator message sent:', data.id);
+  
+  // Broadcast the message
+  await broadcastMessage(data);
+  
   return data;
+}
+
+// Helper function to broadcast messages
+async function broadcastMessage(message: Message): Promise<void> {
+  try {
+    const channel = supabase.channel('story_updates');
+    await channel.subscribe();
+    channel.send({
+      type: 'broadcast',
+      event: 'message',
+      payload: message
+    });
+  } catch (error) {
+    console.error('Error broadcasting message:', error);
+    // Don't throw error here - message is already saved in database
+  }
 }
