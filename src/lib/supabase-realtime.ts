@@ -2,38 +2,38 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import type { Message } from '../types';
 
-const BROADCAST_CHANNEL = 'story_updates';
-
 export function subscribeToStoryMessages(
   storyId: string,
   onMessage: (message: Message) => void,
   onError: (error: Error) => void
 ): RealtimeChannel {
   console.log('Setting up real-time subscription for story:', storyId);
-
-  // Create a unique channel name for this story
-  const channelName = `story:${storyId}`;
   
-  const channel = supabase.channel(channelName);
+  const channel = supabase.channel('story_messages')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'story_messages',
+        filter: `story_id=eq.${storyId}`
+      },
+      (payload) => {
+        try {
+          const message = payload.new as Message;
+          console.log('Received new message:', {
+            id: message.id,
+            type: message.type,
+            timestamp: new Date().toISOString()
+          });
 
-  // Handle broadcast messages
-  channel.on('broadcast', { event: 'message' }, (payload) => {
-    try {
-      if (payload.payload.storyId !== storyId) return;
-
-      const message = payload.payload as Message;
-      console.log('Received broadcast message:', {
-        id: message.id,
-        type: message.type,
-        timestamp: new Date().toISOString()
-      });
-
-      onMessage(message);
-    } catch (error) {
-      console.error('Error processing broadcast message:', error);
-      onError(error instanceof Error ? error : new Error('Unknown error processing message'));
-    }
-  });
+          onMessage(message);
+        } catch (error) {
+          console.error('Error processing database change:', error);
+          onError(error instanceof Error ? error : new Error('Unknown error processing message'));
+        }
+      }
+    );
 
   // Subscribe with error handling and reconnection logic
   let retryCount = 0;

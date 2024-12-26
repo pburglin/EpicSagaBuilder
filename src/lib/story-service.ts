@@ -207,9 +207,6 @@ export async function sendCharacterMessage(
 
   console.log('Character message sent:', data.id);
   
-  // Broadcast the message
-  await broadcastMessage(data);
-  
   return data;
 }
 
@@ -235,24 +232,5 @@ export async function sendNarratorMessage(
 
   console.log('Narrator message sent:', data.id);
   
-  // Broadcast the message
-  await broadcastMessage(data);
-  
   return data;
-}
-
-// Helper function to broadcast messages
-async function broadcastMessage(message: Message): Promise<void> {
-  try {
-    const channel = supabase.channel('story_updates');
-    await channel.subscribe();
-    channel.send({
-      type: 'broadcast',
-      event: 'message',
-      payload: message
-    });
-  } catch (error) {
-    console.error('Error broadcasting message:', error);
-    // Don't throw error here - message is already saved in database
-  }
 }
