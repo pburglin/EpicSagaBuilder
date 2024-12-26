@@ -12,7 +12,6 @@ import { StorySessionManager } from '../lib/session-manager';
 import { subscribeToStoryMessages } from '../lib/supabase-realtime';
 import { loadStoryWithCharacters, loadStoryMessages, completeStory, sendCharacterMessage, restartStory } from '../lib/story-service';
 import { archiveCharacter } from '../lib/character-service';
-import { getCharacterInStory } from '../lib/character-service';
 
 import type { Message } from '../types';
 
@@ -27,6 +26,7 @@ export default function StorySession() {
   const [error, setError] = useState('');
   const [isActionEnabled, setIsActionEnabled] = useState(true);
   const sessionManagerRef = useRef<StorySessionManager | null>(null);
+  const storyCharactersRef = useRef<Map<string, Character>>(new Map());
   const [isLeaving, setIsLeaving] = useState(false);
   const [isNarrationEnabled, setIsNarrationEnabled] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -94,6 +94,11 @@ export default function StorySession() {
         console.log('Loaded story:', loadedStory);
         setStory(loadedStory);
         
+        // Initialize characters map
+        storyCharactersRef.current = new Map(
+          loadedStory.characters.map(char => [char.id, char])
+        );
+        
         // Initialize session manager
         const manager = new StorySessionManager(loadedStory);
         await manager.initialize();
@@ -117,15 +122,7 @@ export default function StorySession() {
         subscriptionRef.current = subscribeToStoryMessages(
           id!,
           (newMessage) => {
-            console.log('AAA Received new message:', newMessage);
-
-            // load character details
-
-            newMessage.character = loadedStory.characters.find(newMessage.characterId);
-
-            //newMessage.character = getCharacterInStory(newMessage.characterId, newMessage.storyId);
-            console.log('AAA newMessage:', newMessage);
-
+            console.log('Received new message:', newMessage);
             setMessages(prev => {
               // Check if message already exists
               if (prev.some(msg => msg.id === newMessage.id)) {
@@ -133,17 +130,25 @@ export default function StorySession() {
                 return prev;
               }
               
+              // Enhance message with character details if needed
+              const enhancedMessage = {
+                ...newMessage,
+                character: newMessage.characterId 
+                  ? storyCharactersRef.current.get(newMessage.characterId)
+                  : undefined
+              };
+              
               // Handle narration for new messages
-              if (narrationEnabledRef.current && newMessage.type === 'narrator') {
+              if (narrationEnabledRef.current && enhancedMessage.type === 'narrator') {
                 console.log('Speaking new narrator message');
                 // Small delay to ensure UI updates first
                 setTimeout(() => {
-                  speakText(newMessage.content);
+                  speakText(enhancedMessage.content);
                 }, 100);
               }
               
               // Sort messages by timestamp
-              return [...prev, newMessage].sort(
+              return [...prev, enhancedMessage].sort(
                 (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
               );
             });

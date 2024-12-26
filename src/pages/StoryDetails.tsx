@@ -17,6 +17,7 @@ export default function StoryDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [joiningStory, setJoiningStory] = useState(false);
+  const [showNarratorOnly, setShowNarratorOnly] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -222,13 +223,30 @@ export default function StoryDetails() {
             {story.status === 'completed' && (
               <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
                 <div className="p-6 border-b">
-                  <h2 className="text-xl font-semibold dark:text-gray-100">Story Chronicle</h2>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2">
-                    The complete tale of this epic adventure, from beginning to end.
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-xl font-semibold dark:text-gray-100">Story Chronicle</h2>
+                      <p className="text-gray-600 dark:text-gray-400 mt-2">
+                        The complete tale of this epic adventure, from beginning to end.
+                      </p>
+                    </div>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={showNarratorOnly}
+                        onChange={(e) => setShowNarratorOnly(e.target.checked)}
+                        className="rounded text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Show Narrator Only
+                      </span>
+                    </label>
+                  </div>
                 </div>
                 <div className="divide-y">
-                  {messages.map((message) => (
+                  {messages
+                    .filter(message => !showNarratorOnly || message.type === 'narrator')
+                    .map((message) => (
                     <StoryMessage
                       key={message.id}
                       content={message.content}

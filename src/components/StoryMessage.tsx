@@ -38,9 +38,6 @@ export default function StoryMessage({ content, type, character, timestamp }: St
     }
   }
 
-  // TODO - check character.id, then load up details
-  console.log('TAG character:', character);
-
   return (
     <div className={`p-4 ${
       type === 'narrator' 
