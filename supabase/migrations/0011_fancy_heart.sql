@@ -24,7 +24,7 @@ CREATE TABLE karma_points (
   points integer NOT NULL,
   reason text NOT NULL,
   created_at timestamptz DEFAULT now(),
-  created_by uuid REFERENCES auth.users(id)
+  created_by uuid REFERENCES characters(id)
 );
 
 -- Add karma_points column to characters

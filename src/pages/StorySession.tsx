@@ -387,6 +387,7 @@ export default function StorySession() {
                         type={message.type}
                         character={message.character}
                         timestamp={message.createdAt}
+                        currentCharacter={character}
                       />
                     );
                   })}
