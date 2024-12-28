@@ -39,6 +39,7 @@ export default function Stories() {
           image_url,
           user_id,
           story_id,
+          karma_points,
           status
         )
       `)
@@ -86,6 +87,7 @@ export default function Stories() {
           imageUrl: char.image_url || '',
           userId: char.user_id,
           storyId: char.story_id,
+          karmaPoints: char.karma_points,
           status: char.status || 'active'
       }))
     }));
