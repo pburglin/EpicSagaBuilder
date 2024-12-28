@@ -44,7 +44,10 @@ export class StorySessionManager {
     // Check if all active characters have submitted actions
     const activeCharacters = this.story.characters.filter(char => char.status === 'active');
     if (this.pendingActions.size === activeCharacters.length) {
+      console.log('All active characters submitted actions, lets complete the round');
       await this.processRound();
+    } else {
+      console.log('Waiting for ' + (activeCharacters.length - this.pendingActions.size) + ' character(s) to complete the round...');
     }
   }
 
@@ -53,7 +56,10 @@ export class StorySessionManager {
     
     // Generate and send narration
     const prompt = generateActionPrompt(this.currentScene, actions);
+    console.log('prompt: ', prompt);
     const narration = await this.llmService.generateResponse('action', prompt);
+    console.log('narration: ', narration);
+
     await sendNarratorMessage(this.story.id, narration);
 
     // Update current scene and clear pending actions
@@ -62,6 +68,7 @@ export class StorySessionManager {
     
     // Start new round
     this.currentRoundId = await startNewRound(this.story.id);
+    //console.log('currentRoundId: ', currentRoundId);
   }
 
   async completeStory(character: Character): Promise<void> {
