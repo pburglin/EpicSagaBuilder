@@ -1,13 +1,40 @@
+import { useState } from 'react';
 import { Character } from '../types';
+import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { voteOnAction } from '../lib/karma-service';
 
 interface StoryMessageProps {
   content: string;
   type: 'character' | 'narrator';
   character?: Character;
   timestamp: string;
+  currentCharacter?: Character;
 }
 
-export default function StoryMessage({ content, type, character, timestamp }: StoryMessageProps) {
+export default function StoryMessage({ 
+  content, 
+  type, 
+  character, 
+  timestamp,
+  currentCharacter 
+}: StoryMessageProps) {
+  const { user } = useAuth();
+  const [voting, setVoting] = useState(false);
+
+  async function handleVote(isUpvote: boolean) {
+    if (!user || !character || !currentCharacter || voting) return;
+    
+    try {
+      setVoting(true);
+      await voteOnAction(character.id, currentCharacter.id, isUpvote);
+    } catch (error) {
+      console.error('Error voting:', error);
+    } finally {
+      setVoting(false);
+    }
+  }
+
   function formatTimestamp(timestamp: string): string {
     try {
       if (!timestamp) return '';
@@ -27,6 +54,9 @@ export default function StoryMessage({ content, type, character, timestamp }: St
 
       // Format time
       return new Intl.DateTimeFormat('default', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
         hour: 'numeric',
         minute: 'numeric',
         second: 'numeric',
@@ -69,6 +99,34 @@ export default function StoryMessage({ content, type, character, timestamp }: St
               <span className="text-sm text-gray-500 dark:text-gray-400">
                 {character ? `${character.race} ${character.class} • ` : ''}
                 {formatTimestamp(timestamp)}
+                {character && currentCharacter && character.id !== currentCharacter.id && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <button
+                      onClick={() => handleVote(true)}
+                      disabled={voting || (currentCharacter.karmaPoints || 0) <= 0}
+                      className="p-1 hover:bg-gray-100 rounded disabled:opacity-50"
+                      title={
+                        (currentCharacter.karmaPoints || 0) <= 0 
+                          ? "Not enough karma points" 
+                          : "Like this action"
+                      }
+                    >
+                      <ThumbsUp className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleVote(false)}
+                      disabled={voting || (currentCharacter.karmaPoints || 0) <= 0}
+                      className="p-1 hover:bg-gray-100 rounded disabled:opacity-50"
+                      title={
+                        (currentCharacter.karmaPoints || 0) <= 0 
+                          ? "Not enough karma points" 
+                          : "Dislike this action"
+                      }
+                    >
+                      <ThumbsDown className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </span>
             </div>
             <p className="text-gray-800 dark:text-gray-200">

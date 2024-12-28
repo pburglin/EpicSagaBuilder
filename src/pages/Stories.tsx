@@ -12,12 +12,13 @@ export default function Stories() {
   const [loading, setLoading] = useState(true);
   const [showActiveOnly, setShowActiveOnly] = useState(false);
   const [showMyStories, setShowMyStories] = useState(false);
+  const [sortByKarma, setSortByKarma] = useState(false);
 
   useEffect(() => {
-    loadStories();
-  }, [showActiveOnly, showMyStories, user]);
+    loadStories(sortByKarma);
+  }, [showActiveOnly, showMyStories, sortByKarma, user]);
 
-  async function loadStories() {
+  async function loadStories(byKarma: boolean) {
     if (showMyStories && !user) {
       setStories([]);
       setLoading(false);
@@ -65,7 +66,7 @@ export default function Stories() {
       return;
     }
 
-    setStories(data.map(story => ({
+    const processedStories = data.map(story => ({
       id: story.id,
       title: story.title,
       description: story.description,
@@ -86,8 +87,23 @@ export default function Stories() {
           userId: char.user_id,
           storyId: char.story_id,
           status: char.status || 'active'
-        }))
-    })));
+      }))
+    }));
+
+    // Sort stories
+    if (byKarma) {
+      processedStories.sort((a, b) => {
+        const aKarma = a.characters.reduce((sum, char) => sum + (char.karmaPoints || 0), 0);
+        const bKarma = b.characters.reduce((sum, char) => sum + (char.karmaPoints || 0), 0);
+        return bKarma - aKarma;
+      });
+    } else {
+      processedStories.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    }
+
+    setStories(processedStories);
     setLoading(false);
   }
 
@@ -99,15 +115,26 @@ export default function Stories() {
           <h1 className="text-3xl font-bold">Stories</h1>
           <div className="flex gap-4">
             {!authLoading && (
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={showActiveOnly}
-                onChange={(e) => setShowActiveOnly(e.target.checked)}
-                className="rounded text-indigo-600"
-              />
-              <span className="text-sm text-gray-700">Active Stories Only</span>
-            </label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={showActiveOnly}
+                  onChange={(e) => setShowActiveOnly(e.target.checked)}
+                  className="rounded text-indigo-600"
+                />
+                <span className="text-sm text-gray-700">Active Stories Only</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={sortByKarma}
+                  onChange={(e) => setSortByKarma(e.target.checked)}
+                  className="rounded text-indigo-600"
+                />
+                <span className="text-sm text-gray-700">Sort by Karma</span>
+              </label>
+            </div>
             )}
             {user && (
               <label className="flex items-center gap-2">

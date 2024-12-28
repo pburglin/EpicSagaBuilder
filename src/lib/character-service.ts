@@ -10,6 +10,7 @@ export async function createCharacter(data: {
   imageUrl?: string;
   userId: string;
   storyId: string;
+  karmaPoints: number;
 }): Promise<Character> {
   // First increment the current_authors count
   const { error: updateError } = await supabase
@@ -31,7 +32,8 @@ export async function createCharacter(data: {
       description: data.description,
       image_url: data.imageUrl,
       user_id: data.userId,
-      story_id: data.storyId
+      story_id: data.storyId,
+      karma_points: 0
     })
     .select()
     .single();
@@ -49,6 +51,7 @@ export async function createCharacter(data: {
     imageUrl: character.image_url || '',
     userId: character.user_id,
     storyId: character.story_id,
+    karmaPoints: character.karma_points,
     status: character.status || 'active'
   };
 }
@@ -98,6 +101,7 @@ export async function getUserCharacterInStory(userId: string, storyId: string): 
     imageUrl: data.image_url || '',
     userId: data.user_id,
     storyId: data.story_id,
+    karmaPoints: data.karma_points,
     status: data.status || 'active'
   };
 }

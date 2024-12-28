@@ -24,6 +24,7 @@ export interface Character {
   userId: string;
   storyId: string;
   status: 'active' | 'archived';
+  karmaPoints?: number;
 }
 
 export interface User {

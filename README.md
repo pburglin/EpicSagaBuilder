@@ -202,6 +202,11 @@ aws cloudfront create-invalidation --distribution-id YOUR_DIST_ID --paths "/*"
 
 For local development with GPT4All, you'll need to temporarily disable CORS in your browser:
 
+#### Safari:
+1. Open Safari / Settings / Advanced, check "Show features for web developers"
+2. Open Develop / Developer Settings, under Security check "Disable cross-origin restrictions"
+3. Open Safari / Settings for localhost, uncheck "Enable content blockers"
+
 #### Chrome/Edge:
 1. Create a shortcut with target:
    \`\`\`

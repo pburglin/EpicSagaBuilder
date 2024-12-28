@@ -9,6 +9,7 @@ import FAQ from './pages/FAQ';
 import StoryDetails from './pages/StoryDetails';
 import CreateCharacter from './pages/CreateCharacter';
 import StorySession from './pages/StorySession';
+import Leaderboard from './pages/Leaderboard';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 
@@ -27,6 +28,7 @@ function App() {
           <Route path="/stories/:id" element={<StoryDetails />} />
           <Route path="/stories/:id/create-character" element={<CreateCharacter />} />
           <Route path="/stories/:id/session" element={<StorySession />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
         </Routes>
       </Router>
       </ThemeProvider>

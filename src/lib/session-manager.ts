@@ -1,7 +1,7 @@
 import { Story, Character, Message } from '../types';
 import { generateActionPrompt, generateFinalePrompt } from './llm-prompts';
 import { LLMFactory } from './llm-factory';
-import { sendCharacterMessage, sendNarratorMessage } from './story-service';
+import { sendCharacterMessage, sendNarratorMessage, startNewRound, recordPlayerAction } from './story-service';
 
 interface PendingAction {
   character: Character;
@@ -11,18 +11,23 @@ interface PendingAction {
 export class StorySessionManager {
   private story: Story;
   private pendingActions: Map<string, PendingAction>;
+  private currentRoundId: string | null;
   private currentScene: string;
   private llmService: { generateResponse: (type: 'action' | 'finale', prompt: string) => Promise<string> };
 
   constructor(story: Story) {
     this.story = story;
     this.pendingActions = new Map();
+    this.currentRoundId = null;
     this.currentScene = story.startingScene;
   }
 
   async initialize(): Promise<void> {
     // Initialize LLM service
     this.llmService = await LLMFactory.create(this.story);
+    
+    // Start first round
+    this.currentRoundId = await startNewRound(this.story.id);
   }
 
   async submitAction(character: Character, action: string): Promise<void> {
@@ -30,6 +35,11 @@ export class StorySessionManager {
 
     // Send character message immediately
     await sendCharacterMessage(this.story.id, character.id, action);
+
+    // Record player action
+    if (this.currentRoundId) {
+      await recordPlayerAction(this.currentRoundId, character.id);
+    }
 
     // Check if all active characters have submitted actions
     const activeCharacters = this.story.characters.filter(char => char.status === 'active');
@@ -49,6 +59,9 @@ export class StorySessionManager {
     // Update current scene and clear pending actions
     this.currentScene = narration;
     this.pendingActions.clear();
+    
+    // Start new round
+    this.currentRoundId = await startNewRound(this.story.id);
   }
 
   async completeStory(character: Character): Promise<void> {

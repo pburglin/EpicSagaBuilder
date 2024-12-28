@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Trophy } from 'lucide-react';
 import { Story } from '../types';
 
 interface StoryCardProps {
@@ -17,13 +18,19 @@ export default function StoryCard({ story }: StoryCardProps) {
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-gray-900">{story.title}</h3>
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1 text-sm text-gray-600">
+                <Trophy className="h-4 w-4 text-yellow-500" />
+                {story.characters.reduce((sum, char) => sum + (char.karmaPoints || 0), 0)}
+              </span>
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
               story.status === 'active' 
                 ? 'bg-green-100 text-green-800' 
                 : 'bg-gray-100 text-gray-800'
-            }`}>
-              {story.status}
-            </span>
+              }`}>
+                {story.status}
+              </span>
+            </div>
           </div>
           <p className="text-gray-600 mb-4 line-clamp-2">{story.description}</p>
           <div className="flex items-center justify-between text-sm text-gray-500">

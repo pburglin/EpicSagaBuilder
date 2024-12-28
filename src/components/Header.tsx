@@ -1,4 +1,4 @@
-import { ScrollText, LogOut } from 'lucide-react';
+import { ScrollText, LogOut, Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
@@ -19,6 +19,10 @@ export default function Header() {
           </Link>
           <Link to="/stories" className="text-gray-700 hover:text-gray-900">Stories</Link>
           <Link to="/faq" className="text-gray-700 hover:text-gray-900">FAQ</Link>
+          <Link to="/leaderboard" className="text-gray-700 hover:text-gray-900 flex items-center gap-1">
+            <Trophy className="h-4 w-4" />
+            Leaderboard
+          </Link>
         </div>
         <div>
           {user ? (

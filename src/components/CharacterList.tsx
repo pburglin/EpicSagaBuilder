@@ -1,4 +1,5 @@
 import { Character } from '../types';
+import { Crown } from 'lucide-react';
 
 interface CharacterListProps {
   characters: Character[];
@@ -6,6 +7,8 @@ interface CharacterListProps {
 }
 
 export default function CharacterList({ characters, currentUserId }: CharacterListProps) {
+  const maxKarma = Math.max(...characters.map(c => c.karmaPoints || 0));
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
       <h2 className="text-lg font-semibold mb-4 dark:text-gray-100">Active Characters</h2>
@@ -27,9 +30,14 @@ export default function CharacterList({ characters, currentUserId }: CharacterLi
               className="w-10 h-10 rounded-full border dark:border-gray-600"
             />
             <div>
-              <h3 className="font-medium dark:text-gray-100">{character.name}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-medium dark:text-gray-100">{character.name}</h3>
+                {character.karmaPoints === maxKarma && maxKarma > 0 && (
+                  <Crown className="h-4 w-4 text-yellow-500" />
+                )}
+              </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {character.race} {character.class}
+                {character.race} {character.class} • {character.karmaPoints || 0} karma
               </p>
             </div>
           </div>

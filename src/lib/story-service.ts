@@ -18,6 +18,7 @@ export async function loadStoryWithCharacters(
         image_url,
         user_id,
         story_id,
+        karma_points,
         status
       )
     `)
@@ -40,6 +41,7 @@ export async function loadStoryWithCharacters(
       imageUrl: char.image_url || '',
       userId: char.user_id,
       storyId: char.story_id,
+      karmaPoints: char.karma_points,
       status: char.status
     }));
 
@@ -74,6 +76,7 @@ export async function getFeaturedStories(limit: number = 3): Promise<Story[]> {
         image_url,
         user_id,
         story_id,
+        karma_points,
         status
       )
     `)
@@ -107,6 +110,7 @@ export async function getFeaturedStories(limit: number = 3): Promise<Story[]> {
       imageUrl: char.image_url || '',
       userId: char.user_id,
       storyId: char.story_id,
+      karmaPoints: char.karma_points,
       status: char.status || 'active'
     }))
   }));
@@ -131,6 +135,7 @@ export async function loadStoryMessages(storyId: string): Promise<Message[]> {
         image_url,
         user_id,
         story_id,
+        karma_points,
         status
       )
     `)
@@ -157,6 +162,7 @@ export async function loadStoryMessages(storyId: string): Promise<Message[]> {
       imageUrl: message.characters.image_url || '',
       userId: message.characters.user_id,
       storyId: message.characters.story_id,
+      karmaPoints: message.characters.karma_points,
       status: message.characters.status
     } : undefined
   }));
@@ -243,6 +249,7 @@ export async function sendCharacterMessage(
         image_url,
         user_id,
         story_id,
+        karma_points,
         status
       )
     `)
@@ -270,6 +277,7 @@ export async function sendCharacterMessage(
       imageUrl: data.characters.image_url || '',
       userId: data.characters.user_id,
       storyId: data.characters.story_id,
+      karmaPoints: data.characters.karma_points,
       status: data.characters.status
     } : undefined
   };
@@ -298,4 +306,23 @@ export async function sendNarratorMessage(
   console.log('Narrator message sent:', data.id);
   
   return data;
+}
+
+// Round management functions
+export async function startNewRound(storyId: string): Promise<string | null> {
+  const { data, error } = await supabase.rpc('start_story_round', {
+    story_id_val: storyId
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function recordPlayerAction(roundId: string, characterId: string): Promise<void> {
+  const { error } = await supabase.rpc('record_player_action', {
+    round_id: roundId,
+    character_id: characterId
+  });
+
+  if (error) throw error;
 }
