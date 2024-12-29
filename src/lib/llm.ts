@@ -133,8 +133,7 @@ export async function generateNarration(prompt: string): Promise<string> {
       finishReason: data.choices[0]?.finish_reason
     });
 
-    const content = data.choices[0]?.message.content;
-
+    let content = data.choices[0]?.message.content;
     if (!content) {
       console.error('❌ LLM Response Error: No content in response');
       throw new Error('No content in response');
@@ -142,6 +141,15 @@ export async function generateNarration(prompt: string): Promise<string> {
 
     // Store assistant's response in history
     await addMessageToHistory({ role: 'assistant', content });
+
+    // if message is incomplete, request LLM to finish its previous response
+    if (data.choices[0] && data.choices[0]?.finish_reason==='length') {
+      console.log('Requested LLM to complete its last message');
+      const nextPart = await generateNarration("Continue and complete the last message with role assistant.");
+      content += nextPart;
+    }
+
+    console.log('final content:', content);
 
     // Update response time tracking
     const endTime = Date.now();
