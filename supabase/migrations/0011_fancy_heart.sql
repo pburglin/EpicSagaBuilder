@@ -122,10 +122,10 @@ CREATE POLICY "Public read access to karma points"
   ON karma_points FOR SELECT
   USING (true);
 
-CREATE POLICY "Users can add karma points"
-  ON karma_points FOR INSERT
-  TO authenticated
-  WITH CHECK (true);
+CREATE POLICY "Allow registered characters to insert karma points" ON karma_points
+FOR INSERT
+TO authenticated
+WITH CHECK (exists (select 1 from characters where id = (select auth.uid())));
 
 -- Grant execute permissions
 GRANT EXECUTE ON FUNCTION add_karma_points TO authenticated;

@@ -6,6 +6,9 @@ export async function addKarmaPoints(
   reason: string,
   createdBy: string
 ): Promise<void> {
+
+  console.log('addKarmaPoints');
+
   const { error } = await supabase.rpc('add_karma_points', {
     character_id: characterId,
     points,

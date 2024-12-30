@@ -39,6 +39,8 @@ export async function createCharacter(data: {
     .single();
 
   if (characterError || !character) {
+    console.log('characterError: ', characterError);
+    console.log('character: ', character);
     throw new Error('Failed to create character');
   }
 
