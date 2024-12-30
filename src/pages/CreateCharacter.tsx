@@ -38,6 +38,24 @@ export default function CreateCharacter() {
     try {
       const storyData = await loadStoryWithCharacters(id);
       setStory(storyData);
+
+      console.log('storyData: ', storyData);
+      if (storyData && storyData.characterRaces.length === 1) {
+        console.log('TAG');
+        setFormData((prevData) => ({
+          ...prevData,
+          race: storyData.characterRaces[0],
+        }));
+      }
+
+      if (storyData && storyData.characterClasses.length === 1) {
+        console.log('TAG');
+        setFormData((prevData) => ({
+          ...prevData,
+          class: storyData.characterClasses[0],
+        }));
+      }
+  
     } catch (err) {
       setError('Failed to load story');
     } finally {

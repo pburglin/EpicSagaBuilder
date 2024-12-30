@@ -115,31 +115,15 @@ export default function CreateStory() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Maximum Authors
+                Main Quest
               </label>
-              <input
-                type="number"
-                name="maxAuthors"
-                value={formData.maxAuthors}
+              <textarea
+                name="mainQuest"
+                value={formData.mainQuest}
                 onChange={handleInputChange}
-                min={2}
-                max={10}
                 className="w-full px-3 py-2 border rounded-md"
+                rows={3}
                 required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Story Image URL
-              </label>
-              <input
-                type="url"
-                name="imageUrl"
-                value={formData.imageUrl}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border rounded-md"
-                placeholder="https://example.com/image.jpg"
               />
             </div>
 
@@ -159,15 +143,31 @@ export default function CreateStory() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Main Quest
+                Maximum Authors
               </label>
-              <textarea
-                name="mainQuest"
-                value={formData.mainQuest}
+              <input
+                type="number"
+                name="maxAuthors"
+                value={formData.maxAuthors}
+                onChange={handleInputChange}
+                min={1}
+                max={10}
+                className="w-full px-3 py-2 border rounded-md"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Story Image URL
+              </label>
+              <input
+                type="url"
+                name="imageUrl"
+                value={formData.imageUrl}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border rounded-md"
-                rows={3}
-                required
+                placeholder="https://example.com/image.jpg"
               />
             </div>
 
