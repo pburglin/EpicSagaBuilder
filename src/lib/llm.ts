@@ -111,6 +111,7 @@ export async function generateNarration(prompt: string): Promise<string> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + import.meta.env.VITE_LLM_API_KEY
       },
       body: JSON.stringify(requestPayload)
     });

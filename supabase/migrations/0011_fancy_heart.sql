@@ -101,7 +101,7 @@ BEGIN
     NEW.id,
     10,
     'Joined story',
-    NEW.user_id
+    NEW.id
   );
   
   RETURN NEW;

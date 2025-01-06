@@ -13,6 +13,8 @@ dist-ssr
 *.local
 
 .env
+.env.chatgpt
+.env.deepseek
 
 # Editor directories and files
 .vscode/*
