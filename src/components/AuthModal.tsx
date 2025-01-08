@@ -121,6 +121,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 className="w-full px-3 py-2 border rounded-md"
                 required
               />
+              <label className="block text-sm font-small text-gray-500 mb-1">
+                No Invite Code? Contact the admin to request one. 
+              </label>
             </div>
           )}
 

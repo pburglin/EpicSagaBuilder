@@ -38,6 +38,8 @@ export default function Leaderboard() {
           .order('current_authors', { ascending: false })
           .limit(10);
 
+          console.log('stories: ', stories);
+
         if (stories) {
           const storiesWithKarma = stories.map(story => ({
             ...story,
@@ -52,6 +54,8 @@ export default function Leaderboard() {
               storyId: char.story_id
             }))
           })).sort((a, b) => b.totalKarma - a.totalKarma);
+
+          console.log('storiesWithKarma: ', storiesWithKarma);
 
           setTopStories(storiesWithKarma);
         }
@@ -133,7 +137,7 @@ export default function Leaderboard() {
                       #{index + 1}
                     </span>
                     <img
-                      src={story.imageUrl}
+                      src={story.image_url}
                       alt={story.title}
                       className="w-16 h-16 rounded-lg object-cover"
                     />
