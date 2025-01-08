@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { signInWithEmail, signUp } from '../lib/auth';
 import { useAuth } from '../contexts/AuthContext';
+import { validateInviteCode, markInviteCodeUsed } from '../lib/invite-service';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -13,10 +14,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [error, setError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Close modal when user becomes authenticated
   useEffect(() => {
     if (user) {
       onClose();
@@ -31,14 +32,27 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setIsProcessing(true);
 
     try {
-      const { data, error } = isSignUp
+      if (isSignUp) {
+        const isValidCode = await validateInviteCode(inviteCode);
+        if (!isValidCode) {
+          setError('Invalid or already used invite code');
+          setIsProcessing(false);
+          return;
+        }
+      }
+
+      const { data, error: authError } = isSignUp
         ? await signUp(email, password)
         : await signInWithEmail(email, password);
 
-      if (error) {
-        setError(error.message);
+      if (authError) {
+        setError(authError.message);
         setIsProcessing(false);
         return;
+      }
+
+      if (isSignUp && data?.user) {
+        await markInviteCodeUsed(inviteCode, data.user.id);
       }
 
       if (data?.session) {
@@ -49,8 +63,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     } catch (err) {
       console.error('Auth error:', err);
       setError(err instanceof Error ? err.message : 'Authentication failed');
-    } 
-    setIsProcessing(false);
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
   return (
@@ -94,6 +109,21 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             />
           </div>
 
+          {isSignUp && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Invite Code
+              </label>
+              <input
+                type="text"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+                required
+              />
+            </div>
+          )}
+
           {error && (
             <p className="text-red-600 text-sm">{error}</p>
           )}
@@ -101,7 +131,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <button
             type="submit"
             disabled={isProcessing}
-            className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700"
+            className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50"
           >
             {isProcessing 
               ? (isSignUp ? 'Creating Account...' : 'Signing In...') 
