@@ -150,8 +150,8 @@ import { useState, useEffect } from 'react';
                     <h1 className="text-3xl font-bold dark:text-gray-100">{story.title}</h1>
                     <div className="flex items-center gap-2">
                       {story.cloned_from && (
-                        <span className="px-4 py-2 rounded-full bg-gray-200 text-gray-800 text-sm font-medium">
-                          Cloned
+                        <span className="px-4 py-2 rounded-full text-sm font-medium bg-gray-200 text-gray-800">
+                          cloned
                         </span>
                       )}
                       <span className={`px-4 py-2 rounded-full text-sm font-medium ${
