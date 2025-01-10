@@ -131,7 +131,7 @@ import { useState, useEffect } from 'react';
                       onChange={(e) => setShowActiveOnly(e.target.checked)}
                       className="rounded text-indigo-600"
                     />
-                    <span className="text-sm text-gray-700">Active Stories Only</span>
+                    <span className="text-sm text-gray-700">Active Only</span>
                   </label>
                   <label className="flex items-center gap-2">
                     <input
@@ -162,7 +162,7 @@ import { useState, useEffect } from 'react';
                     onChange={(e) => setShowCloned(e.target.checked)}
                     className="rounded text-indigo-600"
                   />
-                  <span className="text-sm text-gray-700">Show Cloned</span>
+                  <span className="text-sm text-gray-700">Cloned</span>
                 </label>
               </div>
             </div>

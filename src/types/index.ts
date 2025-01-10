@@ -12,7 +12,7 @@ export interface Story {
   startingScene: string;
   mainQuest: string;
   characters: Character[];
-  clonedFrom?: string;
+  cloned_from?: string;
 }
 
 export interface Character {
