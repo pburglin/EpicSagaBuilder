@@ -58,6 +58,7 @@ export async function loadStoryWithCharacters(
     characterRaces: data.character_races,
     startingScene: data.starting_scene,
     mainQuest: data.main_quest,
+    cloned_from: data.cloned_from,
     characters
   };
 }
