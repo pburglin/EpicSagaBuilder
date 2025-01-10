@@ -24,7 +24,7 @@ Epic Saga Builder follows a modern web application architecture with these key c
 
 2. **Backend Services**
    - Supabase for database and authentication
-   - LLM service (GPT4All locally or OpenAI in production)
+   - LLM service (GPT4All locally or a SaaS LLM like OpenAI, DeepSeek etc in production)
    - Real-time messaging system
 
 3. **Data Storage**
@@ -96,7 +96,7 @@ The database structure is defined in migration files under `supabase/migrations/
 ### Prerequisites
 
 1. Node.js 18+ and npm
-2. GPT4All with a LLM model (tested with "Llama 3.2 3B Instruct")
+2. GPT4All with a LLM model (tested with "Llama 3.2 3B Instruct") or a SaaS LLM like Open AI, DeepSeek, Google AI etc
 3. Supabase account (free tier works fine)
 4. Git (optional, for version control)
 
@@ -151,13 +151,14 @@ npm run dev
 
 Visit \`http://localhost:5173\` to see the app running.
 
-## AWS Deployment Guide
+## Cloud Deployment Guide
 
 ### Prerequisites
 
-1. AWS Account with appropriate permissions
-2. AWS CLI installed and configured
-3. Domain name (optional, but recommended)
+1. Account with a cloud platform like Netlify or AWS (tested with Netlify free tier)
+2. Domain name (optional, but recommended)
+
+Next steps assume AWS. It is easier to set it up with Netlify.
 
 ### Step 1: Setup AWS Resources
 
@@ -165,10 +166,10 @@ Visit \`http://localhost:5173\` to see the app running.
 2. Configure CloudFront distribution
 3. Setup Route53 if using custom domain
 
-### Step 2: Configure ChatGPT Integration
+### Step 2: Configure LLM Integration
 
-1. Create OpenAI API account
-2. Get API key from OpenAI dashboard
+1. Create account with a SaaS LLM like OpenAI API, DeekSeek, Google AI etc
+2. Generate API key
 3. Update environment variables:
 
 \`\`\`env
@@ -222,7 +223,7 @@ For local development with GPT4All, you'll need to temporarily disable CORS in y
 ### Production Considerations
 
 For production deployment:
-1. Use OpenAI's API instead of local LLM
+1. Use a SaaS LLM like OpenAI's API instead of a local LLM
 2. Implement proper authentication for API calls
 3. Setup rate limiting and usage monitoring
 4. Configure proper CORS headers in your API gateway
