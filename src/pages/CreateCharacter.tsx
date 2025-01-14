@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { createCharacter } from '../lib/character-service';
 import { loadStoryWithCharacters } from '../lib/story-service';
+import { aiOptimize } from '../lib/llm';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import type { Story } from '../types';
@@ -13,6 +14,7 @@ export default function CreateCharacter() {
   const { user } = useAuth();
   const [story, setStory] = useState<Story | null>(null);
   const [loading, setLoading] = useState(true);
+  const [optimizing, setOptimizing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -31,6 +33,29 @@ export default function CreateCharacter() {
     }
     loadStory();
   }, [id, user, navigate]);
+
+  async function handleOptimizeDescription() {
+    if (!formData.description.trim()) {
+      setError('Please enter a description to optimize');
+      return;
+    }
+
+    setOptimizing(true);
+    setError('');
+
+    try {
+      const optimizedDescription = await aiOptimize(formData.description);
+      setFormData(prev => ({
+        ...prev,
+        description: optimizedDescription.slice(0, 250) // Ensure it's within limit
+      }));
+    } catch (error) {
+      console.error('Error optimizing description:', error);
+      setError('Error optimizing description');
+    } finally {
+      setOptimizing(false);
+    }
+  }
 
   async function loadStory() {
     if (!id) return;
@@ -201,15 +226,25 @@ export default function CreateCharacter() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Character Description
                 </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded-md"
-                  rows={4}
-                  required
-                  placeholder="Describe your character's personality, background, and notable traits..."
-                />
+                <div className="relative">
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded-md"
+                    rows={4}
+                    required
+                    placeholder="Describe your character's personality, background, and notable traits..."
+                  />
+                  <button
+                    type="button"
+                    onClick={handleOptimizeDescription}
+                    disabled={optimizing}
+                    className="absolute right-2 bottom-2 bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {optimizing ? 'Optimizing...' : 'AI Optimize'}
+                  </button>
+                </div>
                 <p className="mt-1 text-sm text-gray-500">
                   Create a memorable character that fits the story's theme and setting.
                 </p>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { sendNarratorMessage } from '../lib/story-service';
+import { aiOptimize } from '../lib/llm';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -10,7 +11,77 @@ export default function CreateStory() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [optimizing, setOptimizing] = useState(false);
   const [error, setError] = useState('');
+
+  async function handleOptimizeDescription() {
+    if (!formData.description.trim()) {
+      setError('Please enter a description to optimize');
+      return;
+    }
+
+    setOptimizing(true);
+    setError('');
+
+    try {
+      const optimizedDescription = await aiOptimize(formData.description);
+      setFormData(prev => ({
+        ...prev,
+        description: optimizedDescription.slice(0, 250) // Ensure it's within limit
+      }));
+    } catch (error) {
+      console.error('Error optimizing description:', error);
+      setError('Error optimizing description');
+    } finally {
+      setOptimizing(false);
+    }
+  }
+
+  async function handleOptimizeMainQuest() {
+    if (!formData.mainQuest.trim()) {
+      setError('Please enter a main quest to optimize');
+      return;
+    }
+
+    setOptimizing(true);
+    setError('');
+
+    try {
+      const optimizedContent = await aiOptimize(formData.mainQuest);
+      setFormData(prev => ({
+        ...prev,
+        mainQuest: optimizedContent.slice(0, 250) // Ensure it's within limit
+      }));
+    } catch (error) {
+      console.error('Error optimizing main quest:', error);
+      setError('Error optimizing main quest');
+    } finally {
+      setOptimizing(false);
+    }
+  }
+
+  async function handleOptimizeStartingScene() {
+    if (!formData.startingScene.trim()) {
+      setError('Please enter a starting scene to optimize');
+      return;
+    }
+
+    setOptimizing(true);
+    setError('');
+
+    try {
+      const optimizedContent = await aiOptimize(formData.startingScene);
+      setFormData(prev => ({
+        ...prev,
+        startingScene: optimizedContent.slice(0, 250) // Ensure it's within limit
+      }));
+    } catch (error) {
+      console.error('Error optimizing starting scene:', error);
+      setError('Error optimizing starting scene');
+    } finally {
+      setOptimizing(false);
+    }
+  }
 
   const [formData, setFormData] = useState({
     title: '',
@@ -103,42 +174,72 @@ export default function CreateStory() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Description
               </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border rounded-md"
-                rows={4}
-                required
-              />
+              <div className="relative">
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  rows={4}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={handleOptimizeDescription}
+                  disabled={optimizing}
+                  className="absolute right-2 bottom-2 bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {optimizing ? 'Optimizing...' : 'AI Optimize'}
+                </button>
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Main Quest
               </label>
-              <textarea
-                name="mainQuest"
-                value={formData.mainQuest}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border rounded-md"
-                rows={3}
-                required
-              />
+              <div className="relative">
+                <textarea
+                  name="mainQuest"
+                  value={formData.mainQuest}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  rows={3}
+                  required
+                />
+                  <button
+                    type="button"
+                    onClick={handleOptimizeMainQuest}
+                    disabled={optimizing}
+                    className="absolute right-2 bottom-2 bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {optimizing ? 'Optimizing...' : 'AI Optimize'}
+                  </button>
+                </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Starting Scene
               </label>
-              <textarea
-                name="startingScene"
-                value={formData.startingScene}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border rounded-md"
-                rows={3}
-                required
-              />
+              <div className="relative">
+                <textarea
+                  name="startingScene"
+                  value={formData.startingScene}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  rows={3}
+                  required
+                />
+                  <button
+                    type="button"
+                    onClick={handleOptimizeStartingScene}
+                    disabled={optimizing}
+                    className="absolute right-2 bottom-2 bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {optimizing ? 'Optimizing...' : 'AI Optimize'}
+                  </button>
+                </div>
             </div>
 
             <div>

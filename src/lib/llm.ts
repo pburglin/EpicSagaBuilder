@@ -85,6 +85,46 @@ async function addMessageToHistory(message: LLMMessage): Promise<void> {
   });
 }
 
+export async function aiOptimize(input: string): Promise<string> {
+  const prompt = `Expand and enhance this text to make it more engaging and descriptive, while keeping it under 250 characters:\n\n${input}`;
+
+  const requestPayload = {
+    model: import.meta.env.VITE_LLM_MODEL_NAME,
+    messages: [
+      { role: 'user', content: prompt }
+    ],
+    max_tokens: 250,
+    temperature: 0.7,
+  };
+
+  try {
+    const response = await fetch(import.meta.env.VITE_LLM_API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + import.meta.env.VITE_LLM_API_KEY
+      },
+      body: JSON.stringify(requestPayload)
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to optimize text: ${error}`);
+    }
+
+    const data: LLMResponse = await response.json();
+    const content = data.choices[0]?.message.content;
+    if (!content) {
+      throw new Error('No content in response');
+    }
+
+    return content.slice(0, 250); // Ensure it's within limit
+  } catch (error) {
+    console.error('Error optimizing text:', error);
+    throw error;
+  }
+}
+
 export async function generateNarration(prompt: string): Promise<string> {
   // Add user prompt to history first
   await addMessageToHistory({ role: 'user', content: prompt });
