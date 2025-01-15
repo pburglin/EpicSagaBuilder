@@ -27,7 +27,7 @@ export default function CreateStory() {
       const optimizedDescription = await aiOptimize(formData.description);
       setFormData(prev => ({
         ...prev,
-        description: optimizedDescription.slice(0, 250) // Ensure it's within limit
+        description: optimizedDescription.slice(0, 1024) // Ensure it's within limit
       }));
     } catch (error) {
       console.error('Error optimizing description:', error);
@@ -50,7 +50,7 @@ export default function CreateStory() {
       const optimizedContent = await aiOptimize(formData.mainQuest);
       setFormData(prev => ({
         ...prev,
-        mainQuest: optimizedContent.slice(0, 250) // Ensure it's within limit
+        mainQuest: optimizedContent.slice(0, 1024) // Ensure it's within limit
       }));
     } catch (error) {
       console.error('Error optimizing main quest:', error);
@@ -73,7 +73,7 @@ export default function CreateStory() {
       const optimizedContent = await aiOptimize(formData.startingScene);
       setFormData(prev => ({
         ...prev,
-        startingScene: optimizedContent.slice(0, 250) // Ensure it's within limit
+        startingScene: optimizedContent.slice(0, 1024) // Ensure it's within limit
       }));
     } catch (error) {
       console.error('Error optimizing starting scene:', error);

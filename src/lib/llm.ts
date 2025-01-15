@@ -1,4 +1,3 @@
-import { Story } from '../types';
 import { loadStoryMessages } from './story-service';
 import { updateLastResponseTime } from './llm-store';
 
@@ -51,6 +50,42 @@ export async function initializeMessageHistory(systemPrompt: string, storyId: st
   console.log('messageHistory: ', messageHistory);
 }
 
+let storyContext: string | null = null;
+
+async function summarizeMessages(messages: LLMMessage[]): Promise<string> {
+  const contentToSummarize = messages
+    .map(msg => msg.content)
+    .join('\n\n');
+  
+  const summaryPrompt = `Summarize with text only the following story context into a concise paragraph, preserving key details like names, places, dates etc, maintaining narrative continuity:\n\n${contentToSummarize}`;
+  console.log('context summaryPrompt:', summaryPrompt);
+
+  const requestPayload = {
+    model: import.meta.env.VITE_LLM_MODEL_NAME,
+    messages: [
+      { role: 'user', content: summaryPrompt }
+    ],
+    max_tokens: 512,
+    temperature: 0.3,
+  };
+
+  const response = await fetch(import.meta.env.VITE_LLM_API_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + import.meta.env.VITE_LLM_API_KEY
+    },
+    body: JSON.stringify(requestPayload)
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to summarize messages');
+  }
+
+  const data: LLMResponse = await response.json();
+  return data.choices[0]?.message.content || '';
+}
+
 async function getMessageHistory(): Promise<LLMMessage[]> {
   const maxHistory = Number(import.meta.env.VITE_LLM_MAX_HISTORY);
   
@@ -61,12 +96,65 @@ async function getMessageHistory(): Promise<LLMMessage[]> {
     throw new Error('No system message found');
   }
 
-  // Get recent non-system messages
+  // Get all non-system messages
+  const allMessages = messageHistory.filter(msg => msg.role !== 'system');
+  
+  // Check if we need to summarize
+  if (allMessages.length > maxHistory) {
+    // Get latest 3 assistant messages
+    const latestMessages = allMessages
+      .filter(msg => msg.role === 'assistant')
+      .slice(-3);
+      
+    if (latestMessages.length > 0) {
+      try {
+
+        // Only include existing storyContext if it has content
+        const messagesToSummarize = [...latestMessages];
+        if (storyContext && storyContext.trim().length > 0) {
+          console.log('Incorporating existing story context into summary');
+          messagesToSummarize.unshift({
+            role: 'assistant',
+            content: `Previous Story Context: ${storyContext}`
+          });
+        }
+
+        storyContext = await summarizeMessages(messagesToSummarize);
+        console.log('Created new story context:', storyContext);
+        
+        console.log('1 context messageHistory: ', messageHistory);
+        // Remove the summarized messages from history
+        messageHistory = messageHistory.filter(
+          msg => !latestMessages.includes(msg)
+        );
+        console.log('2 context messageHistory: ', messageHistory);
+
+      } catch (error) {
+        console.error('Error summarizing messages:', error);
+        // Fall back to removing oldest message if summarization fails
+        messageHistory = messageHistory.slice(1);
+      }
+    }
+  }
+
+  // Get recent messages within limit
   const recentMessages = messageHistory
     .filter(msg => msg.role !== 'system')
     .slice(-maxHistory);
 
-  const messages = [systemMessage, ...recentMessages];
+  // Build final messages array
+  const messages = [systemMessage];
+  
+  // Add story context if available
+  if (storyContext) {
+    messages.push({
+      role: 'user',
+      content: `Story Context: ${storyContext}`
+    });
+  }
+
+  messages.push(...recentMessages);
+  
   console.log('Current message history:', {
     total: messageHistory.length,
     included: messages.length,
@@ -93,7 +181,7 @@ export async function aiOptimize(input: string): Promise<string> {
     messages: [
       { role: 'user', content: prompt }
     ],
-    max_tokens: 250,
+    max_tokens: 512,
     temperature: 0.7,
   };
 

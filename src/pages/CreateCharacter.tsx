@@ -47,7 +47,7 @@ export default function CreateCharacter() {
       const optimizedDescription = await aiOptimize(formData.description);
       setFormData(prev => ({
         ...prev,
-        description: optimizedDescription.slice(0, 250) // Ensure it's within limit
+        description: optimizedDescription.slice(0, 1024) // Ensure it's within limit
       }));
     } catch (error) {
       console.error('Error optimizing description:', error);
