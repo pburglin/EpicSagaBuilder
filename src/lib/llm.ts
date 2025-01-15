@@ -206,14 +206,21 @@ export async function aiOptimize(input: string): Promise<string> {
       throw new Error('No content in response');
     }
 
-    return content.slice(0, 250); // Ensure it's within limit
+    return content.slice(0, 500); // Ensure it's within limit
   } catch (error) {
     console.error('Error optimizing text:', error);
     throw error;
   }
 }
 
-export async function generateNarration(prompt: string): Promise<string> {
+async function generateImageFromText(text: string): Promise<string> {
+  const truncatedText = text.length > 1000 ? text.substring(0, 1000) : text;
+  const imagePrompt = `https://image.pollinations.ai/prompt/${truncatedText}`;
+  console.log('imagePrompt: ', imagePrompt);
+  return imagePrompt;
+}
+
+export async function generateNarration(prompt: string): Promise<{ text: string; imageUrl?: string }> {
   // Add user prompt to history first
   await addMessageToHistory({ role: 'user', content: prompt });
   
@@ -284,7 +291,16 @@ export async function generateNarration(prompt: string): Promise<string> {
     const endTime = Date.now();
     updateLastResponseTime(startTime, endTime);
 
-    return content;
+    let imageUrl: string | undefined;
+    try {
+      imageUrl = await generateImageFromText(content);
+      console.log('Generated image URL:', imageUrl);
+    } catch (error) {
+      console.error('Error generating image:', error);
+      // Continue without image if generation fails
+    }
+
+    return { text: content, imageUrl };
   } catch (error) {
     console.error('Error generating narration:', error);
     throw error;

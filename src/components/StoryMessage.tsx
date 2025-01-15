@@ -11,9 +11,10 @@ interface StoryMessageProps {
   timestamp: string;
   currentCharacter?: Character;
   messageIndex?: number;
+  imageUrl?: string;
 }
 
-export default function StoryMessage({ 
+export default function StoryMessage({
   content,
   type,
   character,
@@ -21,6 +22,19 @@ export default function StoryMessage({
   currentCharacter,
   messageIndex
 }: StoryMessageProps) {
+  // Parse content as JSON if it contains both text and imageUrl
+  let messageText = content;
+  let imageUrl: string | undefined;
+  
+  try {
+    const parsedContent = JSON.parse(content);
+    if (parsedContent.text && typeof parsedContent.text === 'string') {
+      messageText = parsedContent.text;
+      imageUrl = parsedContent.imageUrl;
+    }
+  } catch {
+    // Content is not JSON, use as-is
+  }
   const { user } = useAuth();
   const [voting, setVoting] = useState(false);
 
@@ -150,10 +164,19 @@ export default function StoryMessage({
              {formatTimestamp(timestamp)}
            </span>
            <p className={`${
-             content.includes('EPIC FINALE')
+             messageText.includes('EPIC FINALE')
                ? 'text-indigo-800 dark:text-indigo-300 font-medium whitespace-pre-wrap'
                : 'italic text-gray-600 dark:text-gray-400'
-           }`}>{content}</p>
+           }`}>{messageText}</p>
+           {imageUrl && (
+             <div className="mt-4">
+               <img
+                 src={imageUrl}
+                 alt="Generated story illustration"
+                 className="rounded-lg shadow-md max-w-full h-auto"
+               />
+             </div>
+           )}
          </div>
        </div>
       )}
