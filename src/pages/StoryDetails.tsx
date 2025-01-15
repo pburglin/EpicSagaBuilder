@@ -19,7 +19,7 @@ import { useState, useEffect } from 'react';
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState('');
       const [joiningStory, setJoiningStory] = useState(false);
-      const [showNarratorOnly, setShowNarratorOnly] = useState(false);
+      const [showPlayerCharacters, setShowPlayerCharacters] = useState(false);
       const [cloning, setCloning] = useState(false);
       const [isPlaying, setIsPlaying] = useState(false);
       const [currentUtterance, setCurrentUtterance] = useState<SpeechSynthesisUtterance | null>(null);
@@ -88,7 +88,7 @@ import { useState, useEffect } from 'react';
 
         try {
           const fullText = messages
-            .filter(message => !showNarratorOnly || message.type === 'narrator')
+            .filter(message => showPlayerCharacters || message.type === 'narrator')
             .map(message => {
               if (message.type === 'narrator') {
                 return message.content;
@@ -320,7 +320,7 @@ import { useState, useEffect } from 'react';
                   {story.status === 'completed' && (
                     <button
                       onClick={handlePlayStory}
-                      className="w-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 mt-4"
+                      className="w-full bg-indigo-600 dark:bg-indigo-700 text-white py-3 px-4 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-800 disabled:opacity-50 mt-4"
                     >
                       {isPlaying ? 'Playing...' : 'Play Story'}
                     </button>
@@ -342,19 +342,19 @@ import { useState, useEffect } from 'react';
                         <label className="flex items-center space-x-2">
                           <input
                             type="checkbox"
-                            checked={showNarratorOnly}
-                            onChange={(e) => setShowNarratorOnly(e.target.checked)}
+                            checked={showPlayerCharacters}
+                            onChange={(e) => setShowPlayerCharacters(e.target.checked)}
                             className="rounded text-indigo-600 focus:ring-indigo-500"
                           />
                           <span className="text-sm text-gray-600 dark:text-gray-400">
-                            Show Narrator Only
+                            Show Character Actions
                           </span>
                         </label>
                       </div>
                     </div>
                     <div className="divide-y">
                       {messages
-                        .filter(message => !showNarratorOnly || message.type === 'narrator')
+                        .filter(message => showPlayerCharacters || message.type === 'narrator')
                         .map((message) => (
                         <StoryMessage
                           key={message.id}
