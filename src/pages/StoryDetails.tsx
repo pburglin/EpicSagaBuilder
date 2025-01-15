@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
     import StoryMessage from '../components/StoryMessage';
     import type { Story, Message } from '../types';
     import { supabase } from '../lib/supabase';
+    import { stopSpeech, speakText } from '../lib/speech';
     
     export default function StoryDetails() {
       const { id } = useParams();
@@ -20,6 +21,8 @@ import { useState, useEffect } from 'react';
       const [joiningStory, setJoiningStory] = useState(false);
       const [showNarratorOnly, setShowNarratorOnly] = useState(false);
       const [cloning, setCloning] = useState(false);
+      const [isPlaying, setIsPlaying] = useState(false);
+      const [currentUtterance, setCurrentUtterance] = useState<SpeechSynthesisUtterance | null>(null);
     
       useEffect(() => {
         if (!id) return;
@@ -74,6 +77,49 @@ import { useState, useEffect } from 'react';
         }
       }
     
+      async function handlePlayStory() {
+        if (!story || !messages.length) return;
+        
+        if (isPlaying) {
+          stopSpeech();
+          setIsPlaying(false);
+          return;
+        }
+
+        try {
+          const fullText = messages
+            .filter(message => !showNarratorOnly || message.type === 'narrator')
+            .map(message => {
+              if (message.type === 'narrator') {
+                return message.content;
+              }
+              const character = story.characters.find(c => c.id === message.characterId);
+              return `${character?.name}: ${message.content}`;
+            })
+            .join('\n\n');
+          
+          setIsPlaying(true);
+          const utterance = new SpeechSynthesisUtterance(fullText);
+          setCurrentUtterance(utterance);
+          
+          utterance.onend = () => {
+            setIsPlaying(false);
+            setCurrentUtterance(null);
+          };
+          
+          utterance.onerror = () => {
+            setIsPlaying(false);
+            setCurrentUtterance(null);
+          };
+          
+          speakText(fullText);
+        } catch (err) {
+          console.error('Error playing story:', err);
+          setIsPlaying(false);
+          setCurrentUtterance(null);
+        }
+      }
+
       async function handleCloneStory() {
         if (!user || !story) return;
     
@@ -271,6 +317,15 @@ import { useState, useEffect } from 'react';
                       {cloning ? 'Cloning...' : 'Clone Story'}
                     </button>
                   )}
+                  {story.status === 'completed' && (
+                    <button
+                      onClick={handlePlayStory}
+                      className="w-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 mt-4"
+                    >
+                      {isPlaying ? 'Playing...' : 'Play Story'}
+                    </button>
+                  )}
+
                 </div>
                 
                 {/* Story Messages - Only shown for completed stories */}
