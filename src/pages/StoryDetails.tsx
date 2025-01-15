@@ -355,13 +355,14 @@ import { useState, useEffect } from 'react';
                     <div className="divide-y">
                       {messages
                         .filter(message => showPlayerCharacters || message.type === 'narrator')
-                        .map((message) => (
+                        .map((message, index) => (
                         <StoryMessage
                           key={message.id}
                           content={message.content}
                           type={message.type}
                           character={message.characterId ? story.characters.find(c => c.id === message.characterId) : undefined}
                           timestamp={message.createdAt}
+                          messageIndex={message.type === 'narrator' ? index + 1 : undefined}
                         />
                       ))}
                     </div>

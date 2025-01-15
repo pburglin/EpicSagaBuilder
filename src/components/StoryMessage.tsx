@@ -10,14 +10,16 @@ interface StoryMessageProps {
   character?: Character;
   timestamp: string;
   currentCharacter?: Character;
+  messageIndex?: number;
 }
 
 export default function StoryMessage({ 
-  content, 
-  type, 
-  character, 
+  content,
+  type,
+  character,
   timestamp,
-  currentCharacter 
+  currentCharacter,
+  messageIndex
 }: StoryMessageProps) {
   const { user } = useAuth();
   const [voting, setVoting] = useState(false);
@@ -135,16 +137,25 @@ export default function StoryMessage({
           </div>
         </div>
       ) : (
-        <div className="pl-16">
-          <span className="text-xs text-gray-400 dark:text-gray-500 block mb-1">
-            {formatTimestamp(timestamp)}
-          </span>
-          <p className={`${
-            content.includes('EPIC FINALE')
-              ? 'text-indigo-800 dark:text-indigo-300 font-medium whitespace-pre-wrap'
-              : 'italic text-gray-600 dark:text-gray-400'
-          }`}>{content}</p>
-        </div>
+       <div className="flex items-start gap-4">
+         <div className="flex-shrink-0">
+           <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border-2 border-gray-300 dark:border-gray-600">
+             <span className="text-gray-700 dark:text-gray-300">
+               {type === 'narrator' ? messageIndex : ''}
+             </span>
+           </div>
+         </div>
+         <div className="flex-grow">
+           <span className="text-xs text-gray-400 dark:text-gray-500 block mb-1">
+             {formatTimestamp(timestamp)}
+           </span>
+           <p className={`${
+             content.includes('EPIC FINALE')
+               ? 'text-indigo-800 dark:text-indigo-300 font-medium whitespace-pre-wrap'
+               : 'italic text-gray-600 dark:text-gray-400'
+           }`}>{content}</p>
+         </div>
+       </div>
       )}
     </div>
   );
