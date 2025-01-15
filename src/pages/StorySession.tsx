@@ -381,7 +381,12 @@ export default function StorySession() {
               <div className="flex flex-col">
                 {messages
                   .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-                  .map((message) => {
+                  .map((message, index) => {
+                    const messageIndex = message.type === 'narrator' ?
+                      messages
+                        .slice(0, index + 1)
+                        .filter(msg => msg.type === 'narrator')
+                        .findIndex(msg => msg.id === message.id) + 1 : undefined;
                     return (
                       <StoryMessage
                         key={message.id}
@@ -390,6 +395,7 @@ export default function StorySession() {
                         character={message.character}
                         timestamp={message.createdAt}
                         currentCharacter={character}
+                        messageIndex={messageIndex}
                       />
                     );
                   })}
