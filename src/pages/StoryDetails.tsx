@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-    import { useParams, useNavigate } from 'react-router-dom';
-    import { useAuth } from '../contexts/AuthContext';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { BlobProvider, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
     import { loadStoryWithCharacters, loadStoryMessages } from '../lib/story-service';
     import { getUserCharacterInStory } from '../lib/character-service';
     import Header from '../components/Header';
@@ -23,6 +24,69 @@ import { useState, useEffect } from 'react';
       const [cloning, setCloning] = useState(false);
       const [isPlaying, setIsPlaying] = useState(false);
       const [currentUtterance, setCurrentUtterance] = useState<SpeechSynthesisUtterance | null>(null);
+    
+      const styles = StyleSheet.create({
+        page: {
+          padding: 40,
+          fontFamily: 'Helvetica'
+        },
+        title: {
+          fontSize: 24,
+          marginBottom: 20,
+          textAlign: 'center'
+        },
+        section: {
+          marginBottom: 20
+        },
+        heading: {
+          fontSize: 18,
+          marginBottom: 10
+        },
+        text: {
+          fontSize: 12,
+          lineHeight: 1.5
+        },
+        message: {
+          marginBottom: 10
+        }
+      });
+    
+      const StoryPDF = () => (
+        <Document>
+          <Page style={styles.page}>
+            <View style={styles.section}>
+              <Text style={styles.title}>{story?.title}</Text>
+              <Text style={styles.text}>{story?.description}</Text>
+            </View>
+    
+            <View style={styles.section}>
+              <Text style={styles.heading}>Main Quest</Text>
+              <Text style={styles.text}>{story?.mainQuest}</Text>
+            </View>
+    
+            <View style={styles.section}>
+              <Text style={styles.heading}>Starting Scene</Text>
+              <Text style={styles.text}>{story?.startingScene}</Text>
+            </View>
+    
+            <View style={styles.section}>
+              <Text style={styles.heading}>Story Chronicle</Text>
+              {messages
+                .filter(message => showPlayerCharacters || message.type === 'narrator')
+                .map((message, index) => (
+                  <View key={message.id} style={styles.message}>
+                    <Text style={styles.text}>
+                      {message.type === 'narrator'
+                        ? message.content
+                        : `${story?.characters.find(c => c.id === message.characterId)?.name}: ${message.content}`
+                      }
+                    </Text>
+                  </View>
+                ))}
+            </View>
+          </Page>
+        </Document>
+      );
     
       useEffect(() => {
         if (!id) return;
@@ -318,12 +382,34 @@ import { useState, useEffect } from 'react';
                     </button>
                   )}
                   {story.status === 'completed' && (
-                    <button
-                      onClick={handlePlayStory}
-                      className="w-full bg-indigo-600 dark:bg-indigo-700 text-white py-3 px-4 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-800 disabled:opacity-50 mt-4"
-                    >
-                      {isPlaying ? 'Playing...' : 'Play Story'}
-                    </button>
+                    <>
+                      <button
+                        onClick={handlePlayStory}
+                        className="w-full bg-indigo-600 dark:bg-indigo-700 text-white py-3 px-4 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-800 disabled:opacity-50 mt-4"
+                      >
+                        {isPlaying ? 'Playing...' : 'Play Story'}
+                      </button>
+                      <BlobProvider document={<StoryPDF />}>
+                        {({ blob, loading }) => (
+                          <button
+                            onClick={() => {
+                              if (blob) {
+                                const url = URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = `${story.title.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+                                link.click();
+                                URL.revokeObjectURL(url);
+                              }
+                            }}
+                            className="w-full bg-green-600 dark:bg-green-700 text-white py-3 px-4 rounded-md hover:bg-green-700 dark:hover:bg-green-800 disabled:opacity-50 mt-4"
+                            disabled={loading}
+                          >
+                            {loading ? 'Preparing PDF...' : 'Export to PDF'}
+                          </button>
+                        )}
+                      </BlobProvider>
+                    </>
                   )}
 
                 </div>
