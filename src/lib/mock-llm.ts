@@ -1,4 +1,4 @@
-import { Story, Character } from '../types';
+import { Story } from '../types';
 
 interface MockResponse {
   type: 'action' | 'finale';
@@ -37,15 +37,20 @@ export class MockLLM {
     this.story = story;
   }
 
-  async generateResponse(type: 'action' | 'finale'): Promise<string> {
+  async generateResponse(type: 'action' | 'finale'): Promise<{ text: string; imageUrl?: string }> {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     if (type === 'finale') {
-      return this.generateFinaleResponse();
+      return {
+        text: this.generateFinaleResponse(),
+        imageUrl: 'https://example.com/finale-image.jpg'
+      };
     }
 
-    return this.generateActionResponse();
+    return {
+      text: this.generateActionResponse()
+    };
   }
 
   private generateActionResponse(): string {

@@ -1,4 +1,4 @@
-import { Story, Character, Message } from '../types';
+import { Story, Character } from '../types';
 import { generateActionPrompt, generateFinalePrompt } from './llm-prompts';
 import { LLMFactory } from './llm-factory';
 import { sendCharacterMessage, sendNarratorMessage, startNewRound, recordPlayerAction } from './story-service';
@@ -13,7 +13,9 @@ export class StorySessionManager {
   private pendingActions: Map<string, PendingAction>;
   private currentRoundId: string | null;
   private currentScene: string;
-  private llmService: { generateResponse: (type: 'action' | 'finale', prompt: string) => Promise<string> };
+  private llmService: { generateResponse: (type: 'action' | 'finale', prompt: string) => Promise<{ text: string; imageUrl?: string }> } = {
+    generateResponse: async () => ({ text: '' }) // Default implementation
+  };
 
   constructor(story: Story) {
     this.story = story;
@@ -57,7 +59,7 @@ export class StorySessionManager {
     // Generate and send narration
     const prompt = generateActionPrompt(this.currentScene, actions);
     console.log('prompt: ', prompt);
-    const narration = await this.llmService.generateResponse('action', prompt);
+    const { text: narration } = await this.llmService.generateResponse('action', prompt);
     console.log('narration: ', narration);
 
     await sendNarratorMessage(this.story.id, narration);
@@ -78,15 +80,28 @@ export class StorySessionManager {
 
     // Generate and send finale
     const finalePrompt = generateFinalePrompt(this.story);
-    const finale = await this.llmService.generateResponse('finale', finalePrompt);
+    const { text: finale } = await this.llmService.generateResponse('finale', finalePrompt);
+    console.log('finale: ', finale);
+
+    // Parse content as JSON if it contains both text and imageUrl
+    let messageText = finale;
+    let imageUrl: string | undefined;
     
-    // Add a dramatic pause before the finale
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    try {
+      const parsedContent = JSON.parse(finale);
+      if (parsedContent.text && typeof parsedContent.text === 'string') {
+        messageText = parsedContent.text;
+        imageUrl = parsedContent.imageUrl;
+      }
+    } catch {
+      // Content is not JSON, use as-is
+    }
+
     // Send the finale in an epic format
-    const formattedFinale = 
+    const formattedFinale =
       "🌟 EPIC FINALE 🌟\n\n" +
-      finale + "\n\n" +
+      (typeof messageText === 'object' ? JSON.stringify(messageText, null, 2) : messageText) + "\n\n" +
+      (imageUrl ? `📷 ${imageUrl}\n\n` : '') +
       "THE END";
     
     await sendNarratorMessage(this.story.id, formattedFinale);
