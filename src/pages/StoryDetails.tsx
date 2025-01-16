@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { BlobProvider, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
     import { loadStoryWithCharacters, loadStoryMessages } from '../lib/story-service';
+    import { getProfile } from '../lib/user-service';
     import { getUserCharacterInStory } from '../lib/character-service';
     import Header from '../components/Header';
     import Footer from '../components/Footer';
@@ -23,7 +24,6 @@ import { BlobProvider, Document, Page, Text, View, StyleSheet, Image } from '@re
       const [showPlayerCharacters, setShowPlayerCharacters] = useState(false);
       const [cloning, setCloning] = useState(false);
       const [isPlaying, setIsPlaying] = useState(false);
-      const [currentUtterance, setCurrentUtterance] = useState<SpeechSynthesisUtterance | null>(null);
     
       const styles = StyleSheet.create({
         page: {
@@ -63,51 +63,137 @@ import { BlobProvider, Document, Page, Text, View, StyleSheet, Image } from '@re
         return { text: content };
       };
     
-      const StoryPDF = () => (
-        <Document>
-          <Page style={styles.page}>
-            <View style={styles.section}>
-              <Text style={styles.title}>{story?.title}</Text>
-              <Text style={styles.text}>{story?.description}</Text>
-            </View>
+      const [authors, setAuthors] = useState<Array<{id: string; username: string; avatarUrl?: string}>>([]);
     
-            <View style={styles.section}>
-              <Text style={styles.heading}>Main Quest</Text>
-              <Text style={styles.text}>{story?.mainQuest}</Text>
-            </View>
+      useEffect(() => {
+        const loadAuthors = async () => {
+          if (!story) return;
+          
+          const userIds = Array.from(new Set(
+            story.characters
+              .filter(char => ['active', 'archived'].includes(char.status))
+              .map(char => char.userId)
+          ));
     
-            <View style={styles.section}>
-              <Text style={styles.heading}>Starting Scene</Text>
-              <Text style={styles.text}>{story?.startingScene}</Text>
-            </View>
+          const loadedAuthors = await Promise.all(userIds.map(async userId => {
+            try {
+              const profile = await getProfile(userId);
+              return {
+                id: userId,
+                username: profile?.username || 'Unknown',
+                avatarUrl: profile?.avatarUrl || undefined
+              };
+            } catch (error) {
+              console.error('Error loading profile for user', userId, error);
+              return {
+                id: userId,
+                username: 'Unknown',
+                avatarUrl: undefined
+              };
+            }
+          }));
     
-            <View style={styles.section}>
-              <Text style={styles.heading}>Story Chronicle</Text>
-              {messages
-                .filter(message => showPlayerCharacters || message.type === 'narrator')
-                .map((message, index) => {
-                  const content = parseMessageContent(message.content);
-                  return (
-                    <View key={message.id} style={styles.message}>
-                      <Text style={styles.text}>
-                        {message.type === 'narrator'
-                          ? content.text
-                          : `${story?.characters.find(c => c.id === message.characterId)?.name}: ${content.text}`
-                        }
-                      </Text>
-                      {content.imageUrl && (
-                        <Image
-                          src={content.imageUrl}
-                          style={{ width: '100%', marginTop: 10 }}
-                        />
-                      )}
+          setAuthors(loadedAuthors);
+        };
+    
+        loadAuthors();
+      }, [story]);
+    
+      const StoryPDF = () => {
+
+        // Split messages into chunks for pagination
+        const messageChunks = [];
+        const chunkSize = 15;
+        const filteredMessages = messages
+          .filter(message => showPlayerCharacters || message.type === 'narrator');
+        
+        for (let i = 0; i < filteredMessages.length; i += chunkSize) {
+          messageChunks.push(filteredMessages.slice(i, i + chunkSize));
+        }
+    
+        return (
+          <Document>
+            {messageChunks.map((chunk, pageIndex) => (
+              <Page key={pageIndex} style={styles.page}>
+                {/* Page Header */}
+                <View style={{ position: 'absolute', top: 30, left: 0, right: 0, textAlign: 'center' }}>
+                  <Text style={{ fontSize: 10, color: '#666' }}>{story?.title}</Text>
+                </View>
+    
+                {/* Page Footer */}
+                <View style={{ position: 'absolute', bottom: 30, left: 0, right: 0, textAlign: 'center' }}>
+                  <Text style={{ fontSize: 10, color: '#666' }} render={({ pageNumber, totalPages }) => (
+                    `Page ${pageNumber} of ${totalPages}`
+                  )} fixed />
+                </View>
+    
+                {/* Only show metadata on first page */}
+                {pageIndex === 0 && (
+                  <>
+                    <View style={styles.section}>
+                      <Text style={styles.title}>{story?.title}</Text>
+                      <Text style={styles.text}>{story?.description}</Text>
                     </View>
-                  );
-                })}
-            </View>
-          </Page>
-        </Document>
-      );
+    
+                    {/* Authors Section */}
+                    <View style={styles.section}>
+                      <Text style={styles.heading}>Contributing Authors</Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                        {authors.map((author, index) => (
+                          <View key={index} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                            {author.avatarUrl && (
+                              <Image
+                                src={author.avatarUrl}
+                                style={{ width: 20, height: 20, borderRadius: 10 }}
+                              />
+                            )}
+                            <Text style={styles.text}>{author.username}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+    
+                    <View style={styles.section}>
+                      <Text style={styles.heading}>Main Quest</Text>
+                      <Text style={styles.text}>{story?.mainQuest}</Text>
+                    </View>
+    
+                    <View style={styles.section}>
+                      <Text style={styles.heading}>Starting Scene</Text>
+                      <Text style={styles.text}>{story?.startingScene}</Text>
+                    </View>
+    
+                    <Text style={styles.heading}>Story Chronicle</Text>
+                  </>
+                )}
+    
+                {/* Messages Section */}
+                <View style={styles.section}>
+                  {chunk.map((message) => {
+                    const content = parseMessageContent(message.content);
+                    return (
+                      <View key={message.id} style={styles.message}>
+                        <Text style={styles.text}>
+                          {message.type === 'narrator'
+                            ? content.text
+                            : `${story?.characters.find(c => c.id === message.characterId)?.name}: ${content.text}`
+                          }
+                        </Text>
+                        {content.imageUrl && (
+                          <Image
+                            src={content.imageUrl}
+                            style={{ width: '100%', marginTop: 10 }}
+                          />
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              </Page>
+            ))}
+          </Document>
+        );
+      };
     
       useEffect(() => {
         if (!id) return;
@@ -185,23 +271,18 @@ import { BlobProvider, Document, Page, Text, View, StyleSheet, Image } from '@re
           
           setIsPlaying(true);
           const utterance = new SpeechSynthesisUtterance(fullText);
-          setCurrentUtterance(utterance);
-          
           utterance.onend = () => {
             setIsPlaying(false);
-            setCurrentUtterance(null);
           };
           
           utterance.onerror = () => {
             setIsPlaying(false);
-            setCurrentUtterance(null);
           };
           
           speakText(fullText);
         } catch (err) {
           console.error('Error playing story:', err);
           setIsPlaying(false);
-          setCurrentUtterance(null);
         }
       }
 
