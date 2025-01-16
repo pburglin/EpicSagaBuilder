@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { BlobProvider, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { BlobProvider, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
     import { loadStoryWithCharacters, loadStoryMessages } from '../lib/story-service';
     import { getUserCharacterInStory } from '../lib/character-service';
     import Header from '../components/Header';
@@ -51,6 +51,18 @@ import { BlobProvider, Document, Page, Text, View, StyleSheet } from '@react-pdf
         }
       });
     
+      const parseMessageContent = (content: string) => {
+        try {
+          const parsed = JSON.parse(content);
+          if (typeof parsed === 'object' && parsed.text) {
+            return parsed;
+          }
+        } catch {
+          // Not JSON, return as-is
+        }
+        return { text: content };
+      };
+    
       const StoryPDF = () => (
         <Document>
           <Page style={styles.page}>
@@ -73,16 +85,25 @@ import { BlobProvider, Document, Page, Text, View, StyleSheet } from '@react-pdf
               <Text style={styles.heading}>Story Chronicle</Text>
               {messages
                 .filter(message => showPlayerCharacters || message.type === 'narrator')
-                .map((message, index) => (
-                  <View key={message.id} style={styles.message}>
-                    <Text style={styles.text}>
-                      {message.type === 'narrator'
-                        ? message.content
-                        : `${story?.characters.find(c => c.id === message.characterId)?.name}: ${message.content}`
-                      }
-                    </Text>
-                  </View>
-                ))}
+                .map((message, index) => {
+                  const content = parseMessageContent(message.content);
+                  return (
+                    <View key={message.id} style={styles.message}>
+                      <Text style={styles.text}>
+                        {message.type === 'narrator'
+                          ? content.text
+                          : `${story?.characters.find(c => c.id === message.characterId)?.name}: ${content.text}`
+                        }
+                      </Text>
+                      {content.imageUrl && (
+                        <Image
+                          src={content.imageUrl}
+                          style={{ width: '100%', marginTop: 10 }}
+                        />
+                      )}
+                    </View>
+                  );
+                })}
             </View>
           </Page>
         </Document>

@@ -99,7 +99,7 @@ export class StorySessionManager {
 
     // Send the finale in an epic format
     const formattedFinale =
-      "🌟 EPIC FINALE 🌟\n\n" +
+      "\n\n" +
       (typeof messageText === 'object' ? JSON.stringify(messageText, null, 2) : messageText) + "\n\n" +
       (imageUrl ? `📷 ${imageUrl}\n\n` : '') +
       "THE END";

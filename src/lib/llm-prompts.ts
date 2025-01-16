@@ -54,5 +54,7 @@ Create a dramatic conclusion that:
 3. Provides a satisfying ending worthy of legend
 4. Leaves a lasting impact on the world
 
-Make it epic, emotional, and memorable!`;
+Make it epic, emotional, and memorable!
+
+Do not include emogis, hashtags or other special characters in your response.`;
 }
