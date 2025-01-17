@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle, LogOut, Volume2, VolumeX, RotateCcw } from 'lucide-react';
+import { CheckCircle, LogOut, Volume2, VolumeX, RotateCcw, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/Header';
 import StoryConsole from '../components/StoryConsole';
@@ -29,6 +29,7 @@ export default function StorySession() {
   const storyCharactersRef = useRef<Map<string, Character>>(new Map());
   const [isLeaving, setIsLeaving] = useState(false);
   const [isNarrationEnabled, setIsNarrationEnabled] = useState(false);
+  const [areImagesVisible, setAreImagesVisible] = useState(true);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const narrationEnabledRef = useRef(false);
   const subscriptionRef = useRef<RealtimeChannel | null>(null);
@@ -335,17 +336,30 @@ export default function StorySession() {
                 <div className="flex space-x-2">
                   <div className="flex items-center space-x-2">
                     {speechSupportedRef.current && (
-                    <button
-                      onClick={handleNarrationToggle}
-                      title={isNarrationEnabled ? "Disable Audio Narration" : "Enable Audio Narration"}
-                      className={`p-2 rounded-md hover:bg-opacity-80 transition-colors ${
-                        isNarrationEnabled
-                          ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                      }`}
-                    >
-                      {isNarrationEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
-                    </button>
+                      <>
+                        <button
+                          onClick={() => setAreImagesVisible(!areImagesVisible)}
+                          title={areImagesVisible ? "Hide Images" : "Show Images"}
+                          className={`p-2 rounded-md hover:bg-opacity-80 transition-colors ${
+                            areImagesVisible
+                              ? 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                              : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                          }`}
+                        >
+                          {areImagesVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                        <button
+                          onClick={handleNarrationToggle}
+                          title={isNarrationEnabled ? "Disable Audio Narration" : "Enable Audio Narration"}
+                          className={`p-2 rounded-md hover:bg-opacity-80 transition-colors ${
+                            isNarrationEnabled
+                              ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                          }`}
+                        >
+                          {isNarrationEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+                        </button>
+                      </>
                     )}
                     <button
                       onClick={handleRestartStory}
@@ -396,6 +410,7 @@ export default function StorySession() {
                         timestamp={message.createdAt}
                         currentCharacter={character}
                         messageIndex={messageIndex}
+                        areImagesVisible={areImagesVisible}
                       />
                     );
                   })}
