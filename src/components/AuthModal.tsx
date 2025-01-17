@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { signInWithEmail, signUp } from '../lib/auth';
+const INVITE_CODE_MODE = import.meta.env.VITE_INVITE_CODE_MODE || 'none';
 import { useAuth } from '../contexts/AuthContext';
 import { validateInviteCode, markInviteCodeUsed } from '../lib/invite-service';
 
@@ -32,7 +33,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setIsProcessing(true);
 
     try {
-      if (isSignUp) {
+      if (isSignUp && INVITE_CODE_MODE !== 'none') {
+        if (!inviteCode) {
+          setError('Invite code is required');
+          setIsProcessing(false);
+          return;
+        }
+
         const isValidCode = await validateInviteCode(inviteCode);
         if (!isValidCode) {
           setError('Invalid or already used invite code');
@@ -42,7 +49,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       }
 
       const { data, error: authError } = isSignUp
-        ? await signUp(email, password)
+        ? await signUp(email, password, inviteCode)
         : await signInWithEmail(email, password);
 
       if (authError) {
@@ -109,7 +116,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             />
           </div>
 
-          {isSignUp && (
+          {isSignUp && INVITE_CODE_MODE !== 'none' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Invite Code
@@ -119,10 +126,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value)}
                 className="w-full px-3 py-2 border rounded-md"
-                required
+                required={INVITE_CODE_MODE !== 'none'}
               />
               <label className="block text-sm font-small text-gray-500 mb-1">
-                No Invite Code? Contact the admin to request one. 
+                No Invite Code? Contact the admin to request one.
               </label>
             </div>
           )}

@@ -1,12 +1,19 @@
 import { supabase } from './supabase';
 
+const INVITE_CODE_MODE = import.meta.env.VITE_INVITE_CODE_MODE || 'none';
+
 export async function validateInviteCode(code: string): Promise<boolean> {
-  const { data, error } = await supabase
+  let query = supabase
     .from('user_invites')
     .select('id')
-    .eq('code', code)
-    .is('used_by', null)
-    .single();
+    .eq('code', code);
+
+  // Only check for unused codes in single_use mode
+  if (INVITE_CODE_MODE === 'single_use') {
+    query = query.is('used_by', null);
+  }
+
+  const { data, error } = await query.single();
 
   return !!data && !error;
 }

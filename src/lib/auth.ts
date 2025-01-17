@@ -1,4 +1,7 @@
 import { supabase } from './supabase';
+import { validateInviteCode, markInviteCodeUsed } from './invite-service';
+
+const INVITE_CODE_MODE = import.meta.env.VITE_INVITE_CODE_MODE || 'none';
 
 export async function signInWithEmail(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -20,7 +23,7 @@ export async function signInWithEmail(email: string, password: string) {
         .from('users')
         .insert({
           id: data.user.id,
-          username: email.split('@')[0],
+          username: `${email.split('@')[0]}-${Math.floor(100000 + Math.random() * 900000)}`,
           created_at: new Date().toISOString(),
         });
     }
@@ -29,7 +32,25 @@ export async function signInWithEmail(email: string, password: string) {
   return { data, error };
 }
 
-export async function signUp(email: string, password: string) {
+export async function signUp(email: string, password: string, inviteCode?: string) {
+  // Validate invite code based on mode
+  if (INVITE_CODE_MODE !== 'none') {
+    if (!inviteCode) {
+      return {
+        data: { user: null, session: null },
+        error: new Error('Invite code is required')
+      };
+    }
+
+    const isValid = await validateInviteCode(inviteCode);
+    if (!isValid) {
+      return {
+        data: { user: null, session: null },
+        error: new Error('Invalid invite code')
+      };
+    }
+  }
+
   const response = await supabase.auth.signUp({
     email,
     password,
@@ -38,24 +59,37 @@ export async function signUp(email: string, password: string) {
     }
   });
 
+  // Create user profile first
   if (!response.error && response.data.user) {
-    // Create user profile
     const { error: profileError } = await supabase
       .from('users')
       .insert({
         id: response.data.user.id,
-        username: email.split('@')[0],
+        username: `${email.split('@')[0]}-${Math.floor(100000 + Math.random() * 900000)}`,
         created_at: new Date().toISOString(),
       });
 
     if (profileError) {
       console.error('Failed to create user profile:', profileError);
-      // Sign out the user if profile creation fails
       await signOut();
-      return { 
-        data: { user: null, session: null }, 
-        error: new Error('Failed to create user profile') 
+      return {
+        data: { user: null, session: null },
+        error: new Error('Failed to create user profile')
       };
+    }
+
+    // Mark invite code as used after profile creation
+    if (INVITE_CODE_MODE === 'single_use' && inviteCode) {
+      try {
+        await markInviteCodeUsed(inviteCode, response.data.user.id);
+      } catch (error) {
+        console.error('Failed to mark invite code as used:', error);
+        await signOut();
+        return {
+          data: { user: null, session: null },
+          error: new Error('Failed to process invite code')
+        };
+      }
     }
   }
 
