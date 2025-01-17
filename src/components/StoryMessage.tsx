@@ -12,7 +12,7 @@ interface StoryMessageProps {
   currentCharacter?: Character;
   messageIndex?: number;
   imageUrl?: string;
-  areImagesVisible?: boolean;
+  areStoryImagesHidden?: boolean;
 }
 
 export default function StoryMessage({
@@ -22,7 +22,7 @@ export default function StoryMessage({
   timestamp,
   currentCharacter,
   messageIndex,
-  areImagesVisible
+  areStoryImagesHidden
 }: StoryMessageProps) {
   // Parse content as JSON if it contains both text and imageUrl
   let messageText = content;
@@ -186,7 +186,7 @@ export default function StoryMessage({
                ? 'text-indigo-800 dark:text-indigo-300 font-medium whitespace-pre-wrap'
                : 'italic text-gray-600 dark:text-gray-400'
            }`}>{messageText}</p>
-           {imageUrl && areImagesVisible && (
+           {imageUrl && !areStoryImagesHidden && (
              <div className="mt-4">
                <img
                  src={imageUrl}

@@ -29,7 +29,7 @@ export default function StorySession() {
   const storyCharactersRef = useRef<Map<string, Character>>(new Map());
   const [isLeaving, setIsLeaving] = useState(false);
   const [isNarrationEnabled, setIsNarrationEnabled] = useState(false);
-  const [areImagesVisible, setAreImagesVisible] = useState(true);
+  const [areStoryImagesHidden, setAreStoryImagesHidden] = useState(true);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const narrationEnabledRef = useRef(false);
   const subscriptionRef = useRef<RealtimeChannel | null>(null);
@@ -338,15 +338,15 @@ export default function StorySession() {
                     {speechSupportedRef.current && (
                       <>
                         <button
-                          onClick={() => setAreImagesVisible(!areImagesVisible)}
-                          title={areImagesVisible ? "Hide Images" : "Show Images"}
+                          onClick={() => setAreStoryImagesHidden(!areStoryImagesHidden)}
+                          title={areStoryImagesHidden ? "Hide Images" : "Show Images"}
                           className={`p-2 rounded-md hover:bg-opacity-80 transition-colors ${
-                            areImagesVisible
+                            areStoryImagesHidden
                               ? 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                               : 'bg-indigo-600 text-white hover:bg-indigo-700'
                           }`}
                         >
-                          {areImagesVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          {areStoryImagesHidden ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                         </button>
                         <button
                           onClick={handleNarrationToggle}
@@ -410,7 +410,7 @@ export default function StorySession() {
                         timestamp={message.createdAt}
                         currentCharacter={character}
                         messageIndex={messageIndex}
-                        areImagesVisible={areImagesVisible}
+                        areStoryImagesHidden={areStoryImagesHidden}
                       />
                     );
                   })}
