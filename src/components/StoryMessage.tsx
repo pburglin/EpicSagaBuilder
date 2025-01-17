@@ -25,15 +25,31 @@ export default function StoryMessage({
   // Parse content as JSON if it contains both text and imageUrl
   let messageText = content;
   let imageUrl: string | undefined;
-  
-  try {
-    const parsedContent = JSON.parse(content);
-    if (parsedContent.text && typeof parsedContent.text === 'string') {
-      messageText = parsedContent.text;
-      imageUrl = parsedContent.imageUrl;
+
+  console.log('messageText:', messageText);
+
+  // generate image to describe scene
+  const truncatedText = messageText.length > 1000 ? messageText.substring(0, 1000) : messageText;
+  imageUrl = `https://image.pollinations.ai/prompt/${truncatedText}`;
+  console.log('imageUrl: ', imageUrl);
+
+  // Check if content looks like JSON
+  if (content.trim().startsWith('{') && content.trim().endsWith('}')) {
+    try {
+      const parsedContent = JSON.parse(content);
+      if (parsedContent.text && typeof parsedContent.text === 'string') {
+        messageText = parsedContent.text;
+        imageUrl = parsedContent.imageUrl || parsedContent.image_url || parsedContent.image;
+        console.log('Parsed message:', { messageText, imageUrl });
+      }
+    } catch (error) {
+      console.error('Error parsing message content:', error);
+      // Fall back to using content as-is
+      messageText = content;
     }
-  } catch {
-    // Content is not JSON, use as-is
+  } else {
+    // Content is plain text
+    messageText = content;
   }
   const { user } = useAuth();
   const [voting, setVoting] = useState(false);
@@ -174,6 +190,10 @@ export default function StoryMessage({
                  src={imageUrl}
                  alt="Generated story illustration"
                  className="rounded-lg shadow-md max-w-full h-auto"
+                 onError={(e) => {
+                   const img = e.target as HTMLImageElement;
+                   img.style.display = 'none';
+                 }}
                />
              </div>
            )}

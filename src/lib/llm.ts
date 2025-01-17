@@ -174,7 +174,7 @@ async function addMessageToHistory(message: LLMMessage): Promise<void> {
 }
 
 export async function aiOptimize(input: string): Promise<string> {
-  const prompt = `Expand and enhance this text to make it more engaging and descriptive, while keeping it under 250 characters:\n\n${input}`;
+  const prompt = `Expand and enhance this text to make it more engaging and descriptive, while keeping it under 500 characters:\n\n${input}`;
 
   const requestPayload = {
     model: import.meta.env.VITE_LLM_MODEL_NAME,
