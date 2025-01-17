@@ -215,7 +215,7 @@ export async function aiOptimize(input: string): Promise<string> {
 
 async function generateImageFromText(text: string): Promise<string> {
   const truncatedText = text.length > 1000 ? text.substring(0, 1000) : text;
-  const imagePrompt = `https://image.pollinations.ai/prompt/${truncatedText}`;
+  const imagePrompt = `https://image.pollinations.ai/prompt/anime style ${truncatedText}`;
   console.log('imagePrompt: ', imagePrompt);
   return imagePrompt;
 }

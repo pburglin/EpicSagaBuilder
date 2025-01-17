@@ -47,7 +47,9 @@ import { BlobProvider, Document, Page, Text, View, StyleSheet, Image } from '@re
           lineHeight: 1.5
         },
         message: {
-          marginBottom: 10
+          marginBottom: 10,
+          display: 'flex',
+          flexDirection: 'column'
         }
       });
     
@@ -171,6 +173,24 @@ import { BlobProvider, Document, Page, Text, View, StyleSheet, Image } from '@re
                 <View style={styles.section}>
                   {chunk.map((message) => {
                     const content = parseMessageContent(message.content);
+
+                    // Generate image specific to message content
+                    const messageContent = parseMessageContent(message.content);
+                    const truncatedText = messageContent.text.length > 1000
+                      ? messageContent.text.substring(0, 1000)
+                      : messageContent.text;
+                    
+                    // Use message-specific image URL if available, otherwise generate one
+                    const imageUrl = messageContent.imageUrl || messageContent.image_url || messageContent.image
+                      ? messageContent.imageUrl || messageContent.image_url || messageContent.image
+                      : `https://image.pollinations.ai/prompt/anime style ${truncatedText}`;
+                    
+                    console.log('Generated image URL:', {
+                      messageId: message.id,
+                      imageUrl,
+                      hasCustomImage: !!messageContent.imageUrl
+                    });
+
                     return (
                       <View key={message.id} style={styles.message}>
                         <Text style={styles.text}>
@@ -179,10 +199,10 @@ import { BlobProvider, Document, Page, Text, View, StyleSheet, Image } from '@re
                             : `${story?.characters.find(c => c.id === message.characterId)?.name}: ${content.text}`
                           }
                         </Text>
-                        {content.imageUrl && (
+                        {imageUrl && (
                           <Image
-                            src={content.imageUrl}
-                            style={{ width: '100%', marginTop: 10 }}
+                            src={imageUrl}
+                            style={{ width: '50%', marginTop: 10 }}
                           />
                         )}
                       </View>
