@@ -34,6 +34,8 @@ export interface User {
   email: string;
   avatarUrl?: string;
   createdAt: string;
+  showImages?: boolean;
+  enableAudioNarration?: boolean;
 }
 
 export interface Message {

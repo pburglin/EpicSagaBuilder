@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, LogOut, Volume2, VolumeX, RotateCcw, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,6 +13,7 @@ import { StorySessionManager } from '../lib/session-manager';
 import { subscribeToStoryMessages } from '../lib/supabase-realtime';
 import { loadStoryWithCharacters, loadStoryMessages, completeStory, sendCharacterMessage, restartStory } from '../lib/story-service';
 import { archiveCharacter } from '../lib/character-service';
+import { getProfile } from '../lib/user-service';
 
 import type { Message } from '../types';
 
@@ -27,10 +29,9 @@ export default function StorySession() {
   const [isActionEnabled, setIsActionEnabled] = useState(true);
   const sessionManagerRef = useRef<StorySessionManager | null>(null);
   const storyCharactersRef = useRef<Map<string, Character>>(new Map());
-  const [isLeaving, setIsLeaving] = useState(false);
   const [isNarrationEnabled, setIsNarrationEnabled] = useState(false);
   const [areStoryImagesHidden, setAreStoryImagesHidden] = useState(true);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null!);
   const narrationEnabledRef = useRef(false);
   const subscriptionRef = useRef<RealtimeChannel | null>(null);
   const autoScrollRef = useRef(true);
@@ -58,7 +59,9 @@ export default function StorySession() {
     if (!autoScrollRef.current || !messagesContainerRef.current) return;
     
     const container = messagesContainerRef.current;
-    container.scrollTop = container.scrollHeight;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
   };
 
   useEffect(() => {
@@ -86,9 +89,27 @@ export default function StorySession() {
       navigate('/profile');
       return;
     }
+
+    async function loadPreferences() {
+      try {
+        const profile = await getProfile(user!.id);
+        if (profile) {
+          setIsNarrationEnabled(profile.enableAudioNarration ?? false);
+          setAreStoryImagesHidden(!(profile.showImages ?? true));
+        }
+      } catch (error) {
+        console.error('Failed to load preferences:', error);
+      }
+    }
+
+    loadPreferences();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
     
     async function initialize() {
-      console.log('Initializing StorySession with:', { userId: user.id, storyId: id });
+      console.log('Initializing StorySession with:', { userId: user!.id, storyId: id });
       
       try {
         const loadedStory = await loadStoryWithCharacters(id!, true);
@@ -105,7 +126,7 @@ export default function StorySession() {
         await manager.initialize();
         sessionManagerRef.current = manager;
         
-        const userCharacter = loadedStory.characters.find(char => char.userId === user.id);
+        const userCharacter = loadedStory.characters.find(char => char.userId === user!.id);
         console.log('Found user character:', userCharacter);
         
         if (userCharacter) {
@@ -124,7 +145,7 @@ export default function StorySession() {
           id!,
           (newMessage) => {
             console.log('Received new message:', newMessage);
-            console.log('newMessage.characterId:', newMessage.character_id);
+            console.log('newMessage.characterId:', newMessage.characterId);
 
             setMessages(prev => {
               // Check if message already exists
@@ -136,8 +157,8 @@ export default function StorySession() {
               // Enhance message with character details if needed
               const enhancedMessage = {
                 ...newMessage,
-                character: newMessage.character_id 
-                  ? storyCharactersRef.current.get(newMessage.character_id)
+                character: newMessage.characterId
+                  ? storyCharactersRef.current.get(newMessage.characterId)
                   : undefined
               };
 
@@ -177,7 +198,7 @@ export default function StorySession() {
   }, [id, user]);
 
   async function handleSendMessage(content: string) {
-    if (!story || !character) return;
+    if (!story || !character || !user) return;
     if (!sessionManagerRef.current) return;
 
     setIsActionEnabled(false);
@@ -236,15 +257,14 @@ export default function StorySession() {
   }
 
   async function handleLeaveStory() {
-    if (!character || !story) return;
+    if (!character || !story || !user) return;
     
-    const confirmMessage = 
+    const confirmMessage =
       'Are you sure you want to leave this story?\n\n' +
       'WARNING: Leaving will delete your character. If you want to rejoin the story later, ' +
       'you will need to create a new character.';
     
     if (window.confirm(confirmMessage)) {
-      setIsLeaving(true);
       try {
         // Send the leaving message
         await sendCharacterMessage(story.id, character.id, 'leaves the party');
@@ -254,7 +274,6 @@ export default function StorySession() {
         navigate(`/stories/${story.id}`);
       } catch (error) {
         setError(error instanceof Error ? error.message : 'Failed to leave story');
-        setIsLeaving(false);
       }
     }
   }
@@ -430,7 +449,7 @@ export default function StorySession() {
           <div className="lg:col-span-1">
             <CharacterList
               characters={story.characters}
-              currentUserId={user.id}
+              currentUserId={user!.id}
             />
           </div>
         </div>

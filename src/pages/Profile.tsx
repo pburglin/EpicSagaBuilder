@@ -12,6 +12,8 @@ export default function Profile() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [showImages, setShowImages] = useState(true);
+  const [enableAudioNarration, setEnableAudioNarration] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -24,17 +26,19 @@ export default function Profile() {
 
     async function loadProfile() {
       try {
-        const profile = await getProfile(user.id);
+        const profile = await getProfile(user!.id);
         
         if (!profile) {
           // Create default profile if none exists
-          const defaultUsername = `user_${user.id.slice(0, 8)}`;
-          const newProfile = await createProfile(user.id, defaultUsername);
+          const defaultUsername = `user_${user!.id.slice(0, 8)}`;
+          const newProfile = await createProfile(user!.id, defaultUsername);
           setUsername(newProfile.username);
           setAvatarUrl(newProfile.avatarUrl || '');
         } else {
           setUsername(profile.username);
           setAvatarUrl(profile.avatarUrl || '');
+          setShowImages(profile.showImages ?? true);
+          setEnableAudioNarration(profile.enableAudioNarration ?? false);
         }
       } catch (err) {
         console.error('Error loading profile:', err);
@@ -55,11 +59,13 @@ export default function Profile() {
     setError('');
 
     try {
-      await updateProfile(user.id, {
+      await updateProfile(user!.id, {
         username,
-        avatarUrl: avatarUrl || undefined
+        avatarUrl: avatarUrl || undefined,
+        showImages,
+        enableAudioNarration,
       });
-      navigate('/stories');
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save profile');
     } finally {
@@ -120,6 +126,47 @@ export default function Profile() {
             </div>
 
             <div className="border-t pt-6 mt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Story Preferences
+              </h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700">Show Images</span>
+                  <button
+                    onClick={() => setShowImages(!showImages)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                      showImages ? 'bg-indigo-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        showImages ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700">Enable Audio Narration</span>
+                  <button
+                    onClick={() => setEnableAudioNarration(!enableAudioNarration)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                      enableAudioNarration ? 'bg-indigo-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        enableAudioNarration ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              </div>
+              <div className="border-t pt-6 mt-6">
+
               <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
                 Appearance
               </h3>

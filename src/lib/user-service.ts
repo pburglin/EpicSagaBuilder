@@ -19,7 +19,9 @@ export async function getProfile(userId: string): Promise<User | null> {
     username: data.username,
     email: '', // Email is stored in auth.users
     avatarUrl: data.avatar_url || undefined,
-    createdAt: data.created_at
+    createdAt: data.created_at,
+    showImages: data.show_images,
+    enableAudioNarration: data.enable_audio_narration
   };
 }
 
@@ -49,17 +51,36 @@ export async function createProfile(userId: string, username: string): Promise<U
 
 export async function updateProfile(
   userId: string,
-  updates: { username?: string; avatarUrl?: string }
+  updates: { username?: string; avatarUrl?: string; showImages?: boolean; enableAudioNarration?: boolean }
 ): Promise<void> {
   const { error } = await supabase
     .from('users')
     .update({
       ...(updates.username && { username: updates.username }),
-      ...(updates.avatarUrl && { avatar_url: updates.avatarUrl })
+      ...(updates.avatarUrl && { avatar_url: updates.avatarUrl }),
+      ...(updates.showImages !== undefined && { show_images: updates.showImages }),
+      ...(updates.enableAudioNarration !== undefined && { enable_audio_narration: updates.enableAudioNarration })
     })
     .eq('id', userId);
 
   if (error) {
     throw new Error('Failed to update profile');
+  }
+}
+
+export async function updatePreferences(
+  userId: string,
+  preferences: { showImages?: boolean; enableAudioNarration?: boolean }
+): Promise<void> {
+  const { error } = await supabase
+    .from('users')
+    .update({
+      show_images: preferences.showImages,
+      enable_audio_narration: preferences.enableAudioNarration
+    })
+    .eq('id', userId);
+
+  if (error) {
+    throw new Error('Failed to update preferences');
   }
 }
