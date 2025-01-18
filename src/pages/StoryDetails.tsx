@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import AuthModal from '../components/AuthModal';
 import { BlobProvider } from '@react-pdf/renderer';
 import { StoryPDF } from '../components/StoryPDF';
     import { loadStoryWithCharacters, loadStoryMessages } from '../lib/story-service';
@@ -25,6 +26,7 @@ import { StoryPDF } from '../components/StoryPDF';
       const [showPlayerCharacters, setShowPlayerCharacters] = useState(false);
       const [cloning, setCloning] = useState(false);
       const [isPlaying, setIsPlaying] = useState(false);
+      const [showAuthModal, setShowAuthModal] = useState(false);
     
       const [authors, setAuthors] = useState<Array<{id: string; username: string; avatarUrl?: string}>>([]);
     
@@ -83,8 +85,13 @@ import { StoryPDF } from '../components/StoryPDF';
       }
     
       async function handleJoinStory() {
-        if (!user || !story) {
-          console.log('No user or story:', { user, story });
+        if (!story) {
+          console.log('No story:', story);
+          return;
+        }
+        
+        if (!user) {
+          setShowAuthModal(true);
           return;
         }
         
@@ -434,6 +441,10 @@ import { StoryPDF } from '../components/StoryPDF';
             </div>
           </main>
           <Footer />
+          <AuthModal
+            isOpen={showAuthModal}
+            onClose={() => setShowAuthModal(false)}
+          />
         </div>
       );
     }
