@@ -146,7 +146,7 @@ export default function CreateCharacter() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
             <img
               src={story.imageUrl}
               alt={story.title}
@@ -155,14 +155,14 @@ export default function CreateCharacter() {
             <div className="p-8">
             <h1 className="text-3xl font-bold mb-6">Create Your Character</h1>
             
-            <div className="mb-8 p-6 bg-gray-50 rounded-lg">
+            <div className="mb-8 p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <h2 className="text-xl font-semibold mb-4">Story Context</h2>
-              <p className="text-gray-600 mb-4"><strong>{story.title}</strong></p>
-              <p className="text-gray-600 mb-4">{story.description}</p>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-300 mb-4"><strong>{story.title}</strong></p>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">{story.description}</p>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 <strong>Main Quest:</strong> {story.mainQuest}
               </p>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-300">
                 <strong>Starting Scene:</strong> {story.startingScene}
               </p>
             </div>
