@@ -8,6 +8,7 @@ import type { Story, Character } from '../types';
 interface UserStats {
   id: string;
   username: string;
+  avatarUrl: string;
   totalKarma: number;
   storiesCount: number;
   characters: Character[];
@@ -64,7 +65,7 @@ export default function Leaderboard() {
         const { data: users } = await supabase
           .from('users')
           .select(`
-            id, username,
+            id, username, avatar_url,
             characters (
               id, name, class, race, description, image_url, karma_points,
               user_id, story_id, status
@@ -76,6 +77,7 @@ export default function Leaderboard() {
           const usersWithStats = users.map(user => ({
             id: user.id,
             username: user.username,
+            avatarUrl: user.avatar_url || import.meta.env.VITE_DEFAULT_CHARACTER_IMAGE,
             totalKarma: user.characters.reduce(
               (sum, char) => sum + (char.karmaPoints || 0),
               0
@@ -177,6 +179,10 @@ export default function Leaderboard() {
                     <span className="text-2xl font-bold text-gray-400">
                       #{index + 1}
                     </span>
+                    <img
+                      src={user.avatarUrl}
+                      className="w-16 h-16 rounded-lg object-cover"
+                    />
                     <div className="flex-grow">
                       <h3 className="font-semibold">{user.username}</h3>
                       <p className="text-sm text-gray-600">
