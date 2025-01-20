@@ -2,6 +2,8 @@
 
 Epic Saga Builder is a collaborative storytelling platform where players and AI work together to create immersive fantasy adventures. The platform combines human creativity with AI-powered narration to create unique, dynamic stories that evolve based on player actions.
 
+You can visit and give the project a try here: (https://eventfy.com)
+
 ## Features
 
 - **Collaborative Storytelling**: Multiple players can join stories and shape the narrative together
