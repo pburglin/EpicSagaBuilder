@@ -49,7 +49,7 @@ export default function Leaderboard() {
             ),
             characters: story.characters.map(char => ({
               ...char,
-              imageUrl: char.image_url || '',
+              imageUrl: char.image_url || import.meta.env.VITE_DEFAULT_CHARACTER_IMAGE,
               userId: char.user_id,
               storyId: char.story_id
             }))
