@@ -10,6 +10,14 @@ Epic Saga Builder is a collaborative storytelling platform where players and AI 
 - **Real-time Updates**: See story developments as they happen
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
 
+## Screenshots
+
+![Landing Page](ESB1.png)
+
+![Story List](ESB2.png)
+
+![Story Session in Progress](ESB3.png)
+
 ## Solution Architecture
 
 ### Overview
@@ -109,23 +117,23 @@ The database structure is defined in migration files under `supabase/migrations/
 
 ### Step 2: Clone and Setup Project
 
-\`\`\`bash
+```bash
 # Clone repository
-git clone https://github.com/yourusername/epic-saga-builder
-cd epic-saga-builder
+git clone https://github.com/pburglin/EpicSagaBuilder
+cd EpicSagaBuilder
 
 # Install dependencies
 npm install
 
 # Copy environment file
 cp .env.example .env
-\`\`\`
+```
 
 ### Step 3: Configure Environment Variables
 
-Edit \`.env\` file:
+Edit `.env` file:
 
-\`\`\`env
+```env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 # Set VITE_USE_MOCK_LLM to false to integrate with a LLM API
@@ -135,21 +143,21 @@ VITE_LLM_MAX_TOKENS=128
 VITE_LLM_MODEL_NAME="Llama 3.2 3B Instruct"
 VITE_LLM_MAX_HISTORY=10
 VITE_LLM_SYSTEM_PROMPT="You are a skilled RPG game master..."
-\`\`\`
+```
 
 ### Step 4: Setup Database
 
 1. Create a new Supabase project
 2. Click "Connect to Supabase" button in the app
-3. Run migrations from \`supabase/migrations\` folder
+3. Run migrations from `supabase/migrations` folder
 
 ### Step 5: Run Development Server
 
-\`\`\`bash
+```bash
 npm run dev
-\`\`\`
+```
 
-Visit \`http://localhost:5173\` to see the app running.
+Visit `http://localhost:5173` to see the app running.
 
 ## Cloud Deployment Guide
 
@@ -172,15 +180,15 @@ Next steps assume AWS. It is easier to set it up with Netlify.
 2. Generate API key
 3. Update environment variables:
 
-\`\`\`env
+```env
 VITE_LLM_API_ENDPOINT=https://api.openai.com/v1/chat/completions
 VITE_LLM_API_KEY=your_openai_api_key
 VITE_LLM_MODEL_NAME=gpt-3.5-turbo
-\`\`\`
+```
 
 ### Step 3: Deploy Frontend
 
-\`\`\`bash
+```bash
 # Build project
 npm run build
 
@@ -189,7 +197,7 @@ aws s3 sync dist/ s3://your-bucket-name
 
 # Invalidate CloudFront cache
 aws cloudfront create-invalidation --distribution-id YOUR_DIST_ID --paths "/*"
-\`\`\`
+```
 
 ### Step 4: Setup Supabase Production Project
 
@@ -210,13 +218,13 @@ For local development with GPT4All, you'll need to temporarily disable CORS in y
 
 #### Chrome/Edge:
 1. Create a shortcut with target:
-   \`\`\`
+   ```
    "C:\Program Files\Google\Chrome\Application\chrome.exe" --disable-web-security --user-data-dir="%LOCALAPPDATA%\Google\Chrome\User Data\Testing Profile"
-   \`\`\`
+   ```
 
 #### Firefox:
-1. Type \`about:config\` in address bar
-2. Set \`security.fileuri.strict_origin_policy\` to \`false\`
+1. Type `about:config` in address bar
+2. Set `security.fileuri.strict_origin_policy` to `false`
 
 ⚠️ **IMPORTANT**: Only disable CORS for development! Re-enable security features when done testing.
 
