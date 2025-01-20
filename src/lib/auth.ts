@@ -11,8 +11,6 @@ export async function signInWithEmail(email: string, password: string) {
 
   // Only return auth data, profile creation is handled in signUp
   return { data, error };
-
-  return { data, error };
 }
 
 export async function signUp(email: string, password: string, inviteCode?: string) {
@@ -38,7 +36,7 @@ export async function signUp(email: string, password: string, inviteCode?: strin
     email,
     password,
     options: {
-      emailRedirectTo: window.location.origin
+      emailRedirectTo: "https://www.eventfy.com"
     }
   });
 
