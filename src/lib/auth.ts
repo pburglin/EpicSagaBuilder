@@ -9,25 +9,8 @@ export async function signInWithEmail(email: string, password: string) {
     password,
   });
 
-  if (!error && data.user) {
-    // Ensure user profile exists
-    const { data: profile } = await supabase
-      .from('users')
-      .select()
-      .eq('id', data.user.id)
-      .single();
-
-    if (!profile) {
-      // Create profile if it doesn't exist
-      await supabase
-        .from('users')
-        .insert({
-          id: data.user.id,
-          username: `${email.split('@')[0]}-${Math.floor(100000 + Math.random() * 900000)}`,
-          created_at: new Date().toISOString(),
-        });
-    }
-  }
+  // Only return auth data, profile creation is handled in signUp
+  return { data, error };
 
   return { data, error };
 }
@@ -59,14 +42,17 @@ export async function signUp(email: string, password: string, inviteCode?: strin
     }
   });
 
-  // Create user profile first
+  // Create user profile with conflict handling
   if (!response.error && response.data.user) {
     const { error: profileError } = await supabase
       .from('users')
-      .insert({
+      .upsert({
         id: response.data.user.id,
         username: `${email.split('@')[0]}-${Math.floor(100000 + Math.random() * 900000)}`,
         created_at: new Date().toISOString(),
+      }, {
+        onConflict: 'id',
+        ignoreDuplicates: true
       });
 
     if (profileError) {

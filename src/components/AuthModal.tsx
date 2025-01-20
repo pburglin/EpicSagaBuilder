@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { signInWithEmail, signUp } from '../lib/auth';
+import { supabase } from '../lib/supabase';
 const INVITE_CODE_MODE = import.meta.env.VITE_INVITE_CODE_MODE || 'none';
 import { useAuth } from '../contexts/AuthContext';
 import { validateInviteCode, markInviteCodeUsed } from '../lib/invite-service';
@@ -18,6 +19,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [inviteCode, setInviteCode] = useState('');
   const [error, setError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -31,6 +33,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     e.preventDefault();
     setError('');
     setIsProcessing(true);
+    setNeedsConfirmation(false);
 
     try {
       if (isSignUp && INVITE_CODE_MODE !== 'none') {
@@ -65,13 +68,30 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       if (data?.session) {
         // Session will trigger useEffect above
       } else if (isSignUp) {
-        setError('Check your email to confirm your account');
+        setNeedsConfirmation(true);
+        setError('');
       }
-    } catch (err) {
-      console.error('Auth error:', err);
-      setError(err instanceof Error ? err.message : 'Authentication failed');
+    } catch (error) {
+      console.error('Auth error:', error);
+      setError(error instanceof Error ? error.message : 'Authentication failed');
     } finally {
       setIsProcessing(false);
+    }
+  }
+
+  async function handleResendConfirmation() {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+      });
+
+      if (error) throw error;
+
+      setError('');
+      setNeedsConfirmation(true);
+    } catch (err) {
+      setError('Failed to resend confirmation email. Please try again.');
     }
   }
 
@@ -90,6 +110,30 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {needsConfirmation && (
+            <div className="bg-blue-50 p-4 rounded-md text-blue-800">
+              <h3 className="font-bold mb-2">Almost there!</h3>
+              <p className="text-sm">
+                We've sent a confirmation email to <span className="font-medium">{email}</span>.
+                Please check your inbox and click the link to verify your account.
+              </p>
+              <p className="text-sm mt-2">
+                Didn't receive the email? Check your spam folder or{' '}
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  className="text-blue-800 underline hover:text-blue-900"
+                >
+                  click here to resend
+                </button>.
+              </p>
+            </div>
+          )}
+
+          {error && !needsConfirmation && (
+            <p className="text-red-600 text-sm">{error}</p>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email
@@ -132,10 +176,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 No Invite Code? Contact the admin to request one.
               </label>
             </div>
-          )}
-
-          {error && (
-            <p className="text-red-600 text-sm">{error}</p>
           )}
 
           <button
