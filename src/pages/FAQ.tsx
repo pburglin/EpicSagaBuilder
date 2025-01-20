@@ -49,9 +49,9 @@ export default function FAQ() {
         
         <div className="max-w-4xl mx-auto">
           <FAQSection title="Getting Started" icon={<Sparkles className="h-6 w-6" />}>
-            <FAQItem question="What is Epic Saga Builder?">
+            <FAQItem question="What is Eventfy Epic Saga Builder?">
               <p>
-                Epic Saga Builder is a collaborative storytelling platform where players and AI work
+                Eventfy Epic Saga Builder is a collaborative storytelling platform where players and AI work
                 together to create immersive fantasy adventures. You can either start your own story
                 or join existing ones, creating unique characters and shaping the narrative through
                 your actions.
