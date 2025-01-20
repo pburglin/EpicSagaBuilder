@@ -83,7 +83,7 @@ export default function Leaderboard() {
             storiesCount: new Set(user.characters.map(char => char.story_id)).size,
             characters: user.characters.map(char => ({
               ...char,
-              imageUrl: char.image_url || '',
+              imageUrl: char.image_url || import.meta.env.VITE_DEFAULT_CHARACTER_IMAGE,
               userId: char.user_id,
               storyId: char.story_id
             }))
