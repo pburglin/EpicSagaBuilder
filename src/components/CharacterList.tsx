@@ -1,6 +1,8 @@
 import { Character } from '../types';
 import { Crown } from 'lucide-react';
 
+const DEFAULT_CHARACTER_IMAGE = import.meta.env.VITE_DEFAULT_CHARACTER_IMAGE;
+
 interface CharacterListProps {
   characters: Character[];
   currentUserId: string;
@@ -25,7 +27,7 @@ export default function CharacterList({ characters, currentUserId }: CharacterLi
             }`}
           >
             <img
-              src={character.imageUrl}
+              src={character.imageUrl || DEFAULT_CHARACTER_IMAGE}
               alt={character.name}
               className="w-10 h-10 rounded-full border dark:border-gray-600"
             />

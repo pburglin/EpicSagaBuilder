@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Character } from '../types';
+
+const DEFAULT_CHARACTER_IMAGE = import.meta.env.VITE_DEFAULT_CHARACTER_IMAGE;
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { voteOnAction } from '../lib/karma-service';
@@ -115,7 +117,7 @@ export default function StoryMessage({
           <div className="flex-shrink-0">
             {character ? (
               <img
-                src={character.imageUrl}
+                src={character.imageUrl || DEFAULT_CHARACTER_IMAGE}
                 alt={character.name}
                 className="w-12 h-12 rounded-full border-2 border-indigo-100 dark:border-indigo-900"
               />

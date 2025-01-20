@@ -15,7 +15,7 @@ export default function Header() {
         <div className="flex items-center space-x-4">
           <Link to="/" className="flex items-center space-x-2">
             <ScrollText className="h-8 w-8 text-indigo-600" />
-            <span className="text-xl font-bold text-gray-900">Epic Saga Builder</span>
+            <span className="text-xl font-bold text-gray-900">Eventfy Epic Saga Builder</span>
           </Link>
           <Link to="/stories" className="text-gray-700 hover:text-gray-900">Stories</Link>
           <Link to="/faq" className="text-gray-700 hover:text-gray-900">FAQ</Link>

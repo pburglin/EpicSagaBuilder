@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { Trophy } from 'lucide-react';
 import { Story } from '../types';
 
+const DEFAULT_CHARACTER_IMAGE = import.meta.env.VITE_DEFAULT_CHARACTER_IMAGE;
+
 interface StoryCardProps {
   story: Story;
 }
@@ -44,7 +46,7 @@ export default function StoryCard({ story }: StoryCardProps) {
                 .map((character) => (
                 <img
                   key={character.id}
-                  src={character.imageUrl}
+                  src={character.imageUrl || DEFAULT_CHARACTER_IMAGE}
                   alt={character.name}
                   className="w-8 h-8 rounded-full border-2 border-white"
                   title={character.name}

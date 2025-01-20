@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+
+const DEFAULT_CHARACTER_IMAGE = import.meta.env.VITE_DEFAULT_CHARACTER_IMAGE;
 import AuthModal from '../components/AuthModal';
 import { BlobProvider } from '@react-pdf/renderer';
 import { StoryPDF } from '../components/StoryPDF';
@@ -318,7 +320,7 @@ import { StoryPDF } from '../components/StoryPDF';
                             }`}
                           >
                             <img
-                              src={character.imageUrl}
+                              src={character.imageUrl || DEFAULT_CHARACTER_IMAGE}
                               alt={character.name}
                               className="w-12 h-12 rounded-full object-cover border dark:border-gray-600"
                             />
