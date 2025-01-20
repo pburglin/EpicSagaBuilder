@@ -36,7 +36,7 @@ export async function signUp(email: string, password: string, inviteCode?: strin
     email,
     password,
     options: {
-      emailRedirectTo: "https://www.eventfy.com"
+      emailRedirectTo: window.location.origin
     }
   });
 
