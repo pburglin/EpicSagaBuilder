@@ -19,13 +19,20 @@ export default function StoryCard({ story }: StoryCardProps) {
         />
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
             <h3 className="text-xl font-semibold text-gray-900">{story.title}</h3>
+          </div>
             <div className="flex items-center gap-2">
               <span className="flex items-center gap-1 text-sm text-gray-600">
                 <Trophy className="h-4 w-4 text-yellow-500" />
                 {story.characters.reduce((sum, char) => sum + (char.karmaPoints || 0), 0)}
               </span>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+              {story.is_private && (
+              <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">
+                Private
+              </span>
+              )}
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
               story.status === 'active' 
                 ? 'bg-green-100 text-green-800' 
                 : 'bg-gray-100 text-gray-800'
