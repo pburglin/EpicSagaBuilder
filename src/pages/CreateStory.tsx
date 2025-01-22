@@ -14,6 +14,18 @@ export default function CreateStory() {
   const [optimizing, setOptimizing] = useState(false);
   const [error, setError] = useState('');
 
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    maxAuthors: 5,
+    imageUrl: '',
+    startingScene: '',
+    mainQuest: '',
+    characterClasses: '',
+    characterRaces: '',
+    isPrivate: false
+  });
+
   async function handleOptimizeDescription() {
     if (!formData.description.trim()) {
       setError('Please enter a description to optimize');
@@ -27,7 +39,7 @@ export default function CreateStory() {
       const optimizedDescription = await aiOptimize(formData.description);
       setFormData(prev => ({
         ...prev,
-        description: optimizedDescription.slice(0, 1024) // Ensure it's within limit
+        description: optimizedDescription.slice(0, 1024)
       }));
     } catch (error) {
       console.error('Error optimizing description:', error);
@@ -50,7 +62,7 @@ export default function CreateStory() {
       const optimizedContent = await aiOptimize(formData.mainQuest);
       setFormData(prev => ({
         ...prev,
-        mainQuest: optimizedContent.slice(0, 1024) // Ensure it's within limit
+        mainQuest: optimizedContent.slice(0, 1024)
       }));
     } catch (error) {
       console.error('Error optimizing main quest:', error);
@@ -73,7 +85,7 @@ export default function CreateStory() {
       const optimizedContent = await aiOptimize(formData.startingScene);
       setFormData(prev => ({
         ...prev,
-        startingScene: optimizedContent.slice(0, 1024) // Ensure it's within limit
+        startingScene: optimizedContent.slice(0, 1024)
       }));
     } catch (error) {
       console.error('Error optimizing starting scene:', error);
@@ -82,17 +94,6 @@ export default function CreateStory() {
       setOptimizing(false);
     }
   }
-
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    maxAuthors: 5,
-    imageUrl: '',
-    startingScene: '',
-    mainQuest: '',
-    characterClasses: '',
-    characterRaces: ''
-  });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -114,7 +115,9 @@ export default function CreateStory() {
         starting_scene: formData.startingScene,
         main_quest: formData.mainQuest,
         character_classes: formData.characterClasses.split(',').map(s => s.trim()),
-        character_races: formData.characterRaces.split(',').map(s => s.trim())
+        character_races: formData.characterRaces.split(',').map(s => s.trim()),
+        is_private: formData.isPrivate,
+        created_by: user.id
       })
       .select()
       .single();
@@ -126,7 +129,6 @@ export default function CreateStory() {
       return;
     }
 
-    // Initialize story with introduction messages
     try {
       await sendNarratorMessage(story.id, story.description);
       await sendNarratorMessage(story.id, `Main Quest: ${story.main_quest}`);
@@ -141,10 +143,10 @@ export default function CreateStory() {
   }
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
   }
 
@@ -154,7 +156,7 @@ export default function CreateStory() {
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">Create New Story</h1>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -207,15 +209,15 @@ export default function CreateStory() {
                   rows={3}
                   required
                 />
-                  <button
-                    type="button"
-                    onClick={handleOptimizeMainQuest}
-                    disabled={optimizing}
-                    className="absolute right-2 bottom-2 bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {optimizing ? 'Optimizing...' : 'AI Optimize'}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={handleOptimizeMainQuest}
+                  disabled={optimizing}
+                  className="absolute right-2 bottom-2 bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {optimizing ? 'Optimizing...' : 'AI Optimize'}
+                </button>
+              </div>
             </div>
 
             <div>
@@ -231,15 +233,15 @@ export default function CreateStory() {
                   rows={3}
                   required
                 />
-                  <button
-                    type="button"
-                    onClick={handleOptimizeStartingScene}
-                    disabled={optimizing}
-                    className="absolute right-2 bottom-2 bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {optimizing ? 'Optimizing...' : 'AI Optimize'}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={handleOptimizeStartingScene}
+                  disabled={optimizing}
+                  className="absolute right-2 bottom-2 bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {optimizing ? 'Optimizing...' : 'AI Optimize'}
+                </button>
+              </div>
             </div>
 
             <div>
@@ -306,6 +308,19 @@ export default function CreateStory() {
               <p className="mt-1 text-sm text-gray-500">
                 Comma-separated list of available character races
               </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Private Story
+              </label>
+              <input
+                type="checkbox"
+                name="isPrivate"
+                checked={formData.isPrivate}
+                onChange={handleInputChange}
+                className="border rounded-md"
+              />
             </div>
 
             {error && (

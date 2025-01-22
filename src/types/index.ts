@@ -12,6 +12,8 @@ export interface Story {
   startingScene: string;
   mainQuest: string;
   characters: Character[];
+  is_private: boolean;
+  created_by?: string;
   cloned_from?: string;
 }
 

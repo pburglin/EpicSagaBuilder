@@ -1,6 +1,19 @@
 import { supabase } from './supabase';
 import type { Story, Message } from '../types';
 
+interface DatabaseCharacter {
+  id: string;
+  name: string;
+  class: string;
+  race: string;
+  description: string;
+  image_url: string | null;
+  user_id: string;
+  story_id: string;
+  karma_points: number;
+  status: 'active' | 'archived';
+}
+
 export async function loadStoryWithCharacters(
   storyId: string,
   activeCharactersOnly: boolean = false
@@ -29,10 +42,9 @@ export async function loadStoryWithCharacters(
     throw new Error('Failed to load story');
   }
 
-  // Map characters from database format to frontend format
-  const characters = (data.characters || [])
-    .filter(char => !activeCharactersOnly || char.status === 'active')
-    .map(char => ({
+  const characters = ((data.characters as DatabaseCharacter[]) || [])
+    .filter((char) => !activeCharactersOnly || char.status === 'active')
+    .map((char) => ({
       id: char.id,
       name: char.name,
       class: char.class,
@@ -59,6 +71,7 @@ export async function loadStoryWithCharacters(
     startingScene: data.starting_scene,
     mainQuest: data.main_quest,
     cloned_from: data.cloned_from,
+    is_private: data.is_private || false,
     characters
   };
 }
@@ -82,6 +95,7 @@ export async function getFeaturedStories(limit: number = 3): Promise<Story[]> {
       )
     `)
     .eq('status', 'active')
+    .eq('is_private', false)
     .order('current_authors', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -104,16 +118,21 @@ export async function getFeaturedStories(limit: number = 3): Promise<Story[]> {
     characterRaces: story.character_races,
     startingScene: story.starting_scene,
     mainQuest: story.main_quest,
+    is_private: story.is_private || false,
     characters: (story.characters || [])
-      .filter(char => char.status === 'active')
-      .map(char => ({
-      ...char,
-      imageUrl: char.image_url || '',
-      userId: char.user_id,
-      storyId: char.story_id,
-      karmaPoints: char.karma_points,
-      status: char.status || 'active'
-    }))
+      .filter((char: DatabaseCharacter) => char.status === 'active')
+      .map((char: DatabaseCharacter) => ({
+        id: char.id,
+        name: char.name,
+        class: char.class,
+        race: char.race,
+        description: char.description,
+        imageUrl: char.image_url || '',
+        userId: char.user_id,
+        storyId: char.story_id,
+        karmaPoints: char.karma_points,
+        status: char.status || 'active'
+      }))
   }));
 }
 
@@ -208,7 +227,7 @@ export async function restartStory(storyId: string): Promise<void> {
 
   const { error: deleteError } = await supabase
     .from('story_messages')
-    .delete({ returning: 'minimal' })
+    .delete()
     .in('id', messagesToDelete.map(msg => msg.id))
     .eq('story_id', storyId); // Add story_id check for additional security
 
