@@ -340,7 +340,7 @@ import { StoryPDF } from '../components/StoryPDF';
                     )}
                   </div>
     
-                  {story.status === 'active' && story.currentAuthors < story.maxAuthors && (
+                  {story.status === 'active' && (story.currentAuthors < story.maxAuthors || (user && story.characters.some(char => char.userId === user.id))) && (
                     <button
                       onClick={handleJoinStory}
                       disabled={joiningStory}
