@@ -297,6 +297,9 @@ import { StoryPDF } from '../components/StoryPDF';
                   <div className="mb-8">
                     <h2 className="text-xl font-semibold mb-4 dark:text-gray-100">
                       {story.status === 'completed' ? 'Story Characters' : 'Current Characters'}
+                      <span className="px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                        {story.currentAuthors}/{story.maxAuthors}
+                      </span>
                     </h2>
                     {story.characters.filter(char => 
                       story.status === 'completed' ? true : char.status === 'active'
