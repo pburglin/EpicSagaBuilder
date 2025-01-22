@@ -78,7 +78,7 @@ import { useState, useEffect } from 'react';
           return;
         }
     
-        const processedStories = data.map(story => ({
+        let processedStories = data.map(story => ({
           id: story.id,
           title: story.title,
           description: story.description,
@@ -115,6 +115,14 @@ import { useState, useEffect } from 'react';
               status: char.status || 'active'
           }))
         }));
+    
+        if (characterSlotsFilter === 'empty') {
+          processedStories = processedStories.filter(story => story.currentAuthors === 0);
+        } else if (characterSlotsFilter === 'full') {
+          processedStories = processedStories.filter(story => story.currentAuthors >= story.maxAuthors);
+        } else if (characterSlotsFilter === 'open') {
+          processedStories = processedStories.filter(story => story.currentAuthors < story.maxAuthors);
+        }
     
         // Sort stories
         switch (sortBy) {
