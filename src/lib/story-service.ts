@@ -96,6 +96,7 @@ export async function getFeaturedStories(limit: number = 3): Promise<Story[]> {
     `)
     .eq('status', 'active')
     .eq('is_private', false)
+    .is('cloned_from', null)
     .order('current_authors', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -119,9 +120,9 @@ export async function getFeaturedStories(limit: number = 3): Promise<Story[]> {
     startingScene: story.starting_scene,
     mainQuest: story.main_quest,
     is_private: story.is_private || false,
-    characters: (story.characters || [])
-      .filter((char: DatabaseCharacter) => char.status === 'active')
-      .map((char: DatabaseCharacter) => ({
+    characters: ((story.characters as DatabaseCharacter[]) || [])
+      .filter((char) => char.status === 'active')
+      .map((char) => ({
         id: char.id,
         name: char.name,
         class: char.class,
