@@ -310,17 +310,17 @@ export default function CreateStory() {
               </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Private Story
-              </label>
+            <div className="flex items-center gap-2">
               <input
                 type="checkbox"
                 name="isPrivate"
                 checked={formData.isPrivate}
                 onChange={handleInputChange}
-                className="border rounded-md"
+                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
               />
+              <label className="text-sm font-medium text-gray-700">
+                Private Story - if checked, the story will not be listed to other users
+              </label>
             </div>
 
             {error && (
