@@ -145,7 +145,7 @@ export default function StorySession() {
           id!,
           (newMessage) => {
             console.log('Received new message:', newMessage);
-            console.log('newMessage.characterId:', newMessage.characterId);
+            console.log('newMessage.character_id:', newMessage.character_id);
 
             setMessages(prev => {
               // Check if message already exists
@@ -157,8 +157,8 @@ export default function StorySession() {
               // Enhance message with character details if needed
               const enhancedMessage = {
                 ...newMessage,
-                character: newMessage.characterId
-                  ? storyCharactersRef.current.get(newMessage.characterId)
+                character: newMessage.character_id
+                  ? storyCharactersRef.current.get(newMessage.character_id)
                   : undefined
               };
 
