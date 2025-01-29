@@ -164,7 +164,7 @@ export default function Stories() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Stories</h1>
           <div className="flex gap-4">
             {!authLoading && (
