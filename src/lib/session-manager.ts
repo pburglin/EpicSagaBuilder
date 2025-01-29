@@ -43,6 +43,7 @@ export class StorySessionManager {
       await recordPlayerAction(this.currentRoundId, character.id);
     }
 
+    /*
     // Check if all active characters have submitted actions
     const activeCharacters = this.story.characters.filter(char => char.status === 'active');
     if (this.pendingActions.size === activeCharacters.length) {
@@ -51,6 +52,11 @@ export class StorySessionManager {
     } else {
       console.log('Waiting for ' + (activeCharacters.length - this.pendingActions.size) + ' character(s) to complete the round...');
     }
+    */
+
+    console.log('Dont care if all characters submitted actions, lets complete the round');
+    await this.processRound();
+
   }
 
   private async processRound(): Promise<void> {
