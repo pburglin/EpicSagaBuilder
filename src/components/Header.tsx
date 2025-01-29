@@ -1,4 +1,4 @@
-import { ScrollText, LogOut, Trophy } from 'lucide-react';
+import { ScrollText, LogOut, Trophy, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
@@ -21,7 +21,7 @@ export default function Header() {
           <Link to="/faq" className="text-gray-700 hover:text-gray-900">FAQ</Link>
           <Link to="/leaderboard" className="text-gray-700 hover:text-gray-900 flex items-center gap-1">
             <Trophy className="h-4 w-4" />
-            Leaderboard
+            <span className="hidden sm:inline">Leaderboard</span>
           </Link>
         </div>
         <div>
@@ -39,8 +39,9 @@ export default function Header() {
                     className="w-8 h-8 rounded-full object-cover"
                   />
                 ) : (
-                  <span>{user.email}</span>
+                  <User className="h-5 w-5" />
                 )}
+                <span className="hidden sm:inline">{user.email}</span>
               </Link>
               <button
                 onClick={() => signOut()}
