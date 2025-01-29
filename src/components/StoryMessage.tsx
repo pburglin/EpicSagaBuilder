@@ -128,15 +128,15 @@ export default function StoryMessage({
             )}
           </div>
           <div className="flex-grow">
-            <div className="flex items-baseline gap-2 mb-1">
-              <span className="font-semibold text-indigo-900 dark:text-indigo-300">
+            <div className="flex items-baseline gap-4 mb-1">
+              <div className="font-semibold text-indigo-900 dark:text-indigo-300">
                 {character?.name || 'Unknown Character'}
-              </span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                 {character ? `${character.race} ${character.class} • ` : ''}
                 {formatTimestamp(timestamp)}
                 {character && currentCharacter && character.id !== currentCharacter.id && (
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-2 ml-2">
                     <button
                       onClick={() => handleVote(true)}
                       disabled={voting || (currentCharacter.karmaPoints || 0) <= 0}
@@ -163,7 +163,7 @@ export default function StoryMessage({
                     </button>
                   </div>
                 )}
-              </span>
+              </div>
             </div>
             <p className="text-gray-800 dark:text-gray-200">
               {content}
