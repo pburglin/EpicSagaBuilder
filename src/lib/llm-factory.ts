@@ -12,7 +12,7 @@ export class LLMFactory {
       return new MockLLM(story);
     }
 
-    console.log('Using Real LLM Service');
+    //console.log('Using Real LLM Service');
     await initializeMessageHistory(generateSystemPrompt(story), story.id);
     return {
       generateResponse: async (type: 'action' | 'finale', prompt: string) => {

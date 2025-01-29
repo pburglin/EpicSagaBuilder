@@ -25,7 +25,7 @@ interface LLMResponse {
 let messageHistory: LLMMessage[] = [];
 
 export async function initializeMessageHistory(systemPrompt: string, storyId: string): Promise<void> {
-  console.log('Initializing message history with system prompt');
+  //console.log('Initializing message history with system prompt');
   
   // Load all narrator messages from the story
   const storyMessages = await loadStoryMessages(storyId);

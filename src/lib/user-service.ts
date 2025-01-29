@@ -12,7 +12,7 @@ export async function getProfile(userId: string): Promise<User | null> {
     return null;
   }
 
-  console.log('data: ', data);
+  //console.log('data: ', data);
 
   return {
     id: data.id,

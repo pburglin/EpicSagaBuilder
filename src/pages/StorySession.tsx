@@ -113,7 +113,7 @@ export default function StorySession() {
       
       try {
         const loadedStory = await loadStoryWithCharacters(id!, true);
-        console.log('Loaded story:', loadedStory);
+        //console.log('Loaded story:', loadedStory);
         setStory(loadedStory);
         
         // Initialize characters map
@@ -127,7 +127,7 @@ export default function StorySession() {
         sessionManagerRef.current = manager;
         
         const userCharacter = loadedStory.characters.find(char => char.userId === user!.id);
-        console.log('Found user character:', userCharacter);
+        //console.log('Found user character:', userCharacter);
         
         if (userCharacter) {
           setCharacter(userCharacter);
@@ -137,7 +137,7 @@ export default function StorySession() {
         }
         
         const loadedMessages = await loadStoryMessages(id!);
-        console.log('Loaded messages:', loadedMessages);
+        //console.log('Loaded messages:', loadedMessages);
         setMessages(loadedMessages);
         
         // Set up real-time subscription
@@ -145,7 +145,7 @@ export default function StorySession() {
           id!,
           (newMessage) => {
             console.log('Received new message:', newMessage);
-            console.log('newMessage.character_id:', newMessage.character_id);
+            //console.log('newMessage.character_id:', newMessage.character_id);
 
             setMessages(prev => {
               // Check if message already exists

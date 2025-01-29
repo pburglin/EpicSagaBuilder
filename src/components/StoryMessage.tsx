@@ -30,12 +30,12 @@ export default function StoryMessage({
   let messageText = content;
   let imageUrl: string | undefined;
 
-  console.log('messageText:', messageText);
+  //console.log('messageText:', messageText);
 
   // generate image to describe scene
   const truncatedText = messageText.length > 1000 ? messageText.substring(0, 1000) : messageText;
   imageUrl = `https://image.pollinations.ai/prompt/anime style ${truncatedText}`;
-  console.log('imageUrl: ', imageUrl);
+  //console.log('imageUrl: ', imageUrl);
 
   // Check if content looks like JSON
   if (content.trim().startsWith('{') && content.trim().endsWith('}')) {
