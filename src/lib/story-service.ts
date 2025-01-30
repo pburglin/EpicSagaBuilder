@@ -72,6 +72,7 @@ export async function loadStoryWithCharacters(
     mainQuest: data.main_quest,
     cloned_from: data.cloned_from,
     is_private: data.is_private || false,
+    storyMechanics: data.story_mechanics,
     characters
   };
 }

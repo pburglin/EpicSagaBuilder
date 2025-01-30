@@ -63,7 +63,17 @@ export class StorySessionManager {
     const actions = Array.from(this.pendingActions.values());
     
     // Generate and send narration
-    const prompt = generateActionPrompt(this.currentScene, actions);
+    const systemPrompt = `You are the narrator for a collaborative storytelling experience.
+
+    ${this.story.storyMechanics ? `\nStory Mechanics: ${this.story.storyMechanics}` : ''}
+
+    Story Description: ${this.story.description}
+
+    Main Quest: ${this.story.mainQuest}
+    
+    Guide the user through the story while maintaining consistency.`;
+
+    const prompt = `${systemPrompt}\n\n${generateActionPrompt(this.currentScene, actions)}`;
     console.log('prompt: ', prompt);
     const { text: narration } = await this.llmService.generateResponse('action', prompt);
     console.log('narration: ', narration);

@@ -23,7 +23,8 @@ export default function CreateStory() {
     mainQuest: '',
     characterClasses: '',
     characterRaces: '',
-    isPrivate: false
+    isPrivate: false,
+    storyMechanics: ''
   });
 
   async function handleOptimizeDescription() {
@@ -117,7 +118,8 @@ export default function CreateStory() {
         character_classes: formData.characterClasses.split(',').map(s => s.trim()),
         character_races: formData.characterRaces.split(',').map(s => s.trim()),
         is_private: formData.isPrivate,
-        created_by: user.id
+        created_by: user.id,
+        story_mechanics: formData.storyMechanics
       })
       .select()
       .single();
@@ -242,6 +244,23 @@ export default function CreateStory() {
                   {optimizing ? 'Optimizing...' : 'AI Optimize'}
                 </button>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Story Mechanics (AI Instructions)
+              </label>
+              <textarea
+                name="storyMechanics"
+                value={formData.storyMechanics}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border rounded-md"
+                rows={3}
+                placeholder="Optional instructions for the AI about game mechanics, rules, or special systems"
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                These instructions will be used to instruct the AI but will not be included in the story
+              </p>
             </div>
 
             <div>

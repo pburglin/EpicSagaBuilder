@@ -43,6 +43,7 @@ export interface Database {
           character_races: string[]
           starting_scene: string
           main_quest: string
+          story_mechanics: string | null
         }
         Insert: {
           id?: string
@@ -57,6 +58,7 @@ export interface Database {
           character_races: string[]
           starting_scene: string
           main_quest: string
+          story_mechanics?: string | null
         }
         Update: {
           id?: string
@@ -71,6 +73,7 @@ export interface Database {
           character_races?: string[]
           starting_scene?: string
           main_quest?: string
+          story_mechanics?: string | null
         }
       }
       characters: {
