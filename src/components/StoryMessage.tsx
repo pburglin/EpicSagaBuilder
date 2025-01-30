@@ -33,7 +33,7 @@ export default function StoryMessage({
   //console.log('messageText:', messageText);
 
   // generate image to describe scene
-  const truncatedText = messageText.length > 1000 ? messageText.substring(0, 1000) : messageText;
+  const truncatedText = messageText.length > 2000 ? messageText.substring(0, 2000) : messageText;
   imageUrl = `https://image.pollinations.ai/prompt/anime style ${truncatedText}`;
   //console.log('imageUrl: ', imageUrl);
 
@@ -187,7 +187,19 @@ export default function StoryMessage({
              messageText.includes('EPIC FINALE')
                ? 'text-indigo-800 dark:text-indigo-300 font-medium whitespace-pre-wrap'
                : 'italic text-gray-600 dark:text-gray-400'
-           }`}>{messageText}</p>
+           }`}>
+            {messageText.split(/(```[\s\S]*?```)/g).map((part, index) => {
+                if (part.startsWith('```') && part.endsWith('```')) {
+                  const code = part.slice(3, -3).trim();
+                  return (
+                    <div key={index} className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md my-2 font-mono text-sm whitespace-pre-wrap">
+                      {code}
+                    </div>
+                  );
+                }
+                return <span key={index}>{part}</span>;
+              })}
+            </p>
            {imageUrl && !areStoryImagesHidden && (
              <div className="mt-4">
                <img
