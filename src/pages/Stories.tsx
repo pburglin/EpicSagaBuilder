@@ -12,7 +12,7 @@ export default function Stories() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [originalFilter, setOriginalFilter] = useState<'all' | 'original' | 'cloned'>('all');
-  const [characterSlotsFilter, setCharacterSlotsFilter] = useState<'open' | 'empty' | 'full'>('open');
+  const [characterSlotsFilter, setCharacterSlotsFilter] = useState<'all' | 'open' | 'empty' | 'full'>('all');
   const [myStoriesOnly, setMyStoriesOnly] = useState(false);
   const [sortBy, setSortBy] = useState<'created' | 'updated' | 'karma'>('created');
 
@@ -212,9 +212,10 @@ export default function Stories() {
                   <label className="text-xs text-gray-500 mb-1">Slots</label>
                   <select
                     value={characterSlotsFilter}
-                    onChange={(e) => setCharacterSlotsFilter(e.target.value as 'open' | 'empty' | 'full')}
+                    onChange={(e) => setCharacterSlotsFilter(e.target.value as 'all' | 'open' | 'empty' | 'full')}
                     className="rounded border-gray-300 text-sm"
                   >
+                    <option value="all">All</option>
                     <option value="open">Open</option>
                     <option value="empty">Empty</option>
                     <option value="full">Full</option>
