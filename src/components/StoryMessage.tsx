@@ -188,18 +188,35 @@ export default function StoryMessage({
                ? 'text-indigo-800 dark:text-indigo-300 font-medium whitespace-pre-wrap'
                : 'italic text-gray-600 dark:text-gray-400'
            }`}>
-            {messageText.split(/(```[\s\S]*?```)/g).map((part, index) => {
-                if (part.startsWith('```') && part.endsWith('```')) {
-                  const code = part.slice(3, -3).trim();
-                  return (
-                    <div key={index} className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md my-2 font-mono text-sm whitespace-pre-wrap">
-                      {code}
-                    </div>
-                  );
-                }
-                return <span key={index}>{part}</span>;
-              })}
-            </p>
+             {messageText.split(/(```[\s\S]*?```)/g).flatMap((part, partIndex) => {
+               // show ``` content blocks in a console-like gray box
+               if (part.startsWith('```') && part.endsWith('```')) {
+                 const code = part.slice(3, -3).trim();
+                 return [
+                   <div key={`code-${partIndex}`} className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md my-2 font-mono text-sm whitespace-pre-wrap">
+                     {code}
+                   </div>
+                 ];
+               }
+               
+               // show ** content in bold. if preceded by a dot, add a line break
+               return part.split(/(\*\*[\s\S]*?\*\*)/g).map((subPart, subIndex, subParts) => {
+                 const key = `text-${partIndex}-${subIndex}`;
+                 if (subIndex % 2 === 1) { // It's a ** block
+                   const prevText = subParts[subIndex - 1];
+                   const hasPrecedingDotSpace = prevText.endsWith('. ');
+                   return (
+                     <span key={key}>
+                       {hasPrecedingDotSpace && <br />}
+                       {hasPrecedingDotSpace && <br />}
+                       <strong>{subPart.slice(2, -2)}</strong>
+                     </span>
+                   );
+                 }
+                 return <span key={key}>{subPart}</span>;
+               });
+             })}
+           </p>
            {imageUrl && !areStoryImagesHidden && (
              <div className="mt-4">
                <img
