@@ -14,12 +14,8 @@ export function isSpeechSupported(): boolean {
   export function speakText(text: string): void {
     if (!isSpeechSupported()) return;
   
-    console.log('TAG1');
-
     // Stop any ongoing speech first
     stopSpeech();
-
-    console.log('TAG2');
 
     try {
       const utterance = new SpeechSynthesisUtterance(text);
@@ -32,8 +28,6 @@ export function isSpeechSupported(): boolean {
       };
   
       window.speechSynthesis.speak(utterance);
-
-      console.log('TAG3');
 
     } catch (error) {
       console.error('Speech synthesis error:', error);

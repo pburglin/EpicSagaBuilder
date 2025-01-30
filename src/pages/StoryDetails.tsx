@@ -254,12 +254,14 @@ import { StoryPDF } from '../components/StoryPDF';
 
                   <p className="text-gray-600 dark:text-gray-400 mb-6">{story.description}</p>
 
+                  {story.storyMechanics && (
                   <div className="grid grid-cols-1 md:grid-cols-1 gap-8 mb-8">
                   <div>
                       <h2 className="text-xl font-semibold mb-4 dark:text-gray-100">Story Mechanics</h2>
                       <p className="text-gray-600 dark:text-gray-400">{story.storyMechanics}</p>
                   </div>
                   </div>
+                  )}
     
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                     <div>
