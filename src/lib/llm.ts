@@ -108,18 +108,21 @@ async function getMessageHistory(): Promise<LLMMessage[]> {
     console.log('allNonSystemMessages.length: ', allNonSystemMessages.length);
     console.log('maxHistory: ', maxHistory);
 
-    // Get latest 3 assistant messages
-    const oldestNonSystemMessages = allNonSystemMessages
+    const excessMessages = allNonSystemMessages.length - maxHistory;
+    console.log('excessMessages: ', excessMessages);
+
+    // Get oldest exceeding assistant messages for summarization
+    const oldestAssistantMessages = allNonSystemMessages
       .filter(msg => msg.role === 'assistant')
-      .slice(0, 3);
+      .slice(0, excessMessages);
 
-    console.log('oldestNonSystemMessages.length: ', oldestNonSystemMessages.length);
+    console.log('oldestAssistantMessages.length: ', oldestAssistantMessages.length);
 
-    if (oldestNonSystemMessages.length > 0) {
+    if (oldestAssistantMessages.length > 0) {
       try {
 
         // Only include existing storyContext if it has content
-        const messagesToSummarize = [...oldestNonSystemMessages];
+        const messagesToSummarize = [...oldestAssistantMessages];
         if (storyContext && storyContext.trim().length > 0) {
           console.log('Incorporating existing story context into summary');
           messagesToSummarize.unshift({
@@ -128,13 +131,14 @@ async function getMessageHistory(): Promise<LLMMessage[]> {
           });
         }
 
+        console.log('1 context messageHistory: ', messageHistory);
+
         storyContext = await summarizeMessages(messagesToSummarize);
         console.log('Created new story context:', storyContext);
         
-        console.log('1 context messageHistory: ', messageHistory);
         // Remove the summarized messages from history
         messageHistory = messageHistory.filter(
-          msg => !oldestNonSystemMessages.includes(msg)
+          msg => !oldestAssistantMessages.includes(msg)
         );
         console.log('2 context messageHistory: ', messageHistory);
 

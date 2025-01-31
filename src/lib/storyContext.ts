@@ -5,11 +5,11 @@ export function generateSystemPrompt(story: Story): string {
     .map(char => `${char.name} (${char.race} ${char.class}): ${char.description}`)
     .join('\n');
 
-  return `You are a skilled RPG game master and storyteller. Your role is to create engaging, dynamic narratives based on player actions while maintaining consistency with the game world and character abilities. Respond to player actions with vivid descriptions and appropriate consequences, keeping the story balanced and entertaining. Never take control of player characters or make decisions for them.
+  return `${import.meta.env.VITE_LLM_SYSTEM_PROMPT}
 
-Story: ${story.title}
-Description: ${story.description}
-Main Quest: ${story.mainQuest}
+Title: ${story.title}
+
+${story.storyMechanics}
 
 Characters:
 ${charactersInfo}`;
