@@ -323,10 +323,8 @@ export default function StorySession() {
     );
   }
 
-  if (error || !story || !character) {
+  if (!story || !character) {
     const debugInfo = {
-      hasError: !!error,
-      errorMessage: error,
       hasStory: !!story,
       hasCharacter: !!character,
     };
@@ -336,11 +334,11 @@ export default function StorySession() {
         <Header />
         <main className="flex-grow flex items-center justify-center">
           <div className="text-red-600">
-            {error || `Unable to load story session. Debug info: ${JSON.stringify(debugInfo)}`}
+            {`Unable to load story session. Debug info: ${JSON.stringify(debugInfo)}`}
           </div>
         </main>
       </div>
-    );
+   );
   }
 
   return (

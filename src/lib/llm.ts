@@ -303,6 +303,7 @@ export async function generateNarration(prompt: string): Promise<{ text: string;
     return { text: content, imageUrl };
   } catch (error) {
     console.error('Error generating narration:', error);
-    throw error;
+    // Return an empty response instead of throwing an error
+    return { text: 'An error occurred while generating the narration. Please try again later.' };
   }
 }
