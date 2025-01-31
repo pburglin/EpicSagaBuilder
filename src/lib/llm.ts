@@ -1,4 +1,4 @@
-import { loadStoryMessages } from './story-service';
+import { loadStoryMessages, loadStoryWithCharacters } from './story-service';
 import { updateLastResponseTime } from './llm-store';
 
 interface LLMMessage {
@@ -29,6 +29,7 @@ export async function initializeMessageHistory(systemPrompt: string, storyId: st
   
   // Load all narrator messages from the story
   const storyMessages = await loadStoryMessages(storyId);
+
   const narratorMessages = storyMessages
     .filter(msg => msg.type === 'narrator')
     .map(msg => ({
@@ -36,7 +37,8 @@ export async function initializeMessageHistory(systemPrompt: string, storyId: st
       content: msg.content
     }));
 
-  // Initialize history with system prompt and narrator messages
+  // Initialize history with system prompt and narrator messages only
+  // Excludes user character messages
   messageHistory = [
     { role: 'system', content: systemPrompt },
     ...narratorMessages
@@ -97,20 +99,27 @@ async function getMessageHistory(): Promise<LLMMessage[]> {
   }
 
   // Get all non-system messages
-  const allMessages = messageHistory.filter(msg => msg.role !== 'system');
+  const allNonSystemMessages = messageHistory.filter(msg => msg.role !== 'system');
   
   // Check if we need to summarize
-  if (allMessages.length > maxHistory) {
+  if (allNonSystemMessages.length > 3 && allNonSystemMessages.length > maxHistory) {
+
+    console.log('Starting summarize messages block');
+    console.log('allNonSystemMessages.length: ', allNonSystemMessages.length);
+    console.log('maxHistory: ', maxHistory);
+
     // Get latest 3 assistant messages
-    const latestMessages = allMessages
+    const oldestNonSystemMessages = allNonSystemMessages
       .filter(msg => msg.role === 'assistant')
-      .slice(-3);
-      
-    if (latestMessages.length > 0) {
+      .slice(0, 3);
+
+    console.log('oldestNonSystemMessages.length: ', oldestNonSystemMessages.length);
+
+    if (oldestNonSystemMessages.length > 0) {
       try {
 
         // Only include existing storyContext if it has content
-        const messagesToSummarize = [...latestMessages];
+        const messagesToSummarize = [...oldestNonSystemMessages];
         if (storyContext && storyContext.trim().length > 0) {
           console.log('Incorporating existing story context into summary');
           messagesToSummarize.unshift({
@@ -125,43 +134,30 @@ async function getMessageHistory(): Promise<LLMMessage[]> {
         console.log('1 context messageHistory: ', messageHistory);
         // Remove the summarized messages from history
         messageHistory = messageHistory.filter(
-          msg => !latestMessages.includes(msg)
+          msg => !oldestNonSystemMessages.includes(msg)
         );
         console.log('2 context messageHistory: ', messageHistory);
 
       } catch (error) {
         console.error('Error summarizing messages:', error);
-        // Fall back to removing oldest message if summarization fails
-        messageHistory = messageHistory.slice(1);
+        // Fall back to removing oldest message if summarization fails; do not remove system message
+        messageHistory = messageHistory.slice(1,1);
       }
     }
   }
 
-  // Get recent messages within limit
-  const recentMessages = messageHistory
-    .filter(msg => msg.role !== 'system')
-    .slice(-maxHistory);
-
-  // Build final messages array
-  const messages = [systemMessage];
-  
   // Add story context if available
+  console.log('3 storyContext: ', storyContext);
   if (storyContext) {
-    messages.push({
-      role: 'user',
-      content: `Story Context: ${storyContext}`
+    messageHistory.splice(1, 0,{
+      role: 'assistant',
+      content: `${storyContext}`
     });
   }
-
-  messages.push(...recentMessages);
   
-  console.log('Current message history:', {
-    total: messageHistory.length,
-    included: messages.length,
-    roles: messages.map(m => m.role)
-  });
+  console.log('Current message history:', messageHistory);
 
-  return messages;
+  return messageHistory;
 }
 
 async function addMessageToHistory(message: LLMMessage): Promise<void> {

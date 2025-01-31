@@ -12,7 +12,6 @@ export class StorySessionManager {
   private story: Story;
   private pendingActions: Map<string, PendingAction>;
   private currentRoundId: string | null;
-  private currentScene: string;
   private llmService: { generateResponse: (type: 'action' | 'finale', prompt: string) => Promise<{ text: string; imageUrl?: string }> } = {
     generateResponse: async () => ({ text: '' }) // Default implementation
   };
@@ -21,7 +20,6 @@ export class StorySessionManager {
     this.story = story;
     this.pendingActions = new Map();
     this.currentRoundId = null;
-    this.currentScene = story.startingScene;
   }
 
   async initialize(): Promise<void> {
@@ -62,18 +60,7 @@ export class StorySessionManager {
   private async processRound(): Promise<void> {
     const actions = Array.from(this.pendingActions.values());
     
-    // Generate and send narration
-    const systemPrompt = `You are the narrator for a collaborative storytelling experience.
-
-    ${this.story.storyMechanics ? `\nStory Mechanics: ${this.story.storyMechanics}` : ''}
-
-    Story Description: ${this.story.description}
-
-    Main Quest: ${this.story.mainQuest}
-    
-    Guide the user through the story while maintaining consistency.`;
-
-    const prompt = `${systemPrompt}\n\n${generateActionPrompt(this.currentScene, actions)}`;
+    const prompt = `${generateActionPrompt(actions)}`;
     console.log('prompt: ', prompt);
     const { text: narration } = await this.llmService.generateResponse('action', prompt);
     console.log('narration: ', narration);
@@ -81,7 +68,6 @@ export class StorySessionManager {
     await sendNarratorMessage(this.story.id, narration);
 
     // Update current scene and clear pending actions
-    this.currentScene = narration;
     this.pendingActions.clear();
     
     // Start new round

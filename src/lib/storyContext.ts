@@ -16,17 +16,14 @@ ${charactersInfo}`;
 }
 
 export function generateActionPrompt(
-  currentScene: string,
   characterActions: { character: Character; action: string }[]
 ): string {
   const actionsDescription = characterActions
     .map(({ character, action }) => `${character.name}: ${action}`)
     .join('\n');
 
-  return `Current Scene:
-${currentScene}
+  return `Character Actions:
 
-Character Actions:
 ${actionsDescription}
 
 Describe the outcome of these actions and the resulting scene.`;
