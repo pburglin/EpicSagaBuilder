@@ -30,6 +30,8 @@ import { StoryPDF } from '../components/StoryPDF';
       const [isPlaying, setIsPlaying] = useState(false);
       const [showAuthModal, setShowAuthModal] = useState(false);
       const [showMechanics, setShowMechanics] = useState(false);
+      const [showMainQuest, setShowMainQuest] = useState(false);
+      const [showStartingScene, setShowStartingScene] = useState(false);
     
       const [authors, setAuthors] = useState<Array<{id: string; username: string; avatarUrl?: string}>>([]);
     
@@ -262,7 +264,7 @@ import { StoryPDF } from '../components/StoryPDF';
                           className="text-xl font-semibold mb-4 dark:text-gray-100 cursor-pointer"
                           onClick={() => setShowMechanics(!showMechanics)}
                         >
-                          Story Mechanics {showMechanics ? '-' : '+'}
+                          Story Mechanics {showMechanics ? '▲' : '▼'}
                         </h2>
                         {showMechanics && (
                           <p className="text-gray-600 dark:text-gray-400">{story.storyMechanics}</p>
@@ -273,12 +275,20 @@ import { StoryPDF } from '../components/StoryPDF';
     
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                     <div>
-                      <h2 className="text-xl font-semibold mb-4 dark:text-gray-100">Main Quest</h2>
-                      <p className="text-gray-600 dark:text-gray-400">{story.mainQuest}</p>
+                      <h2 className="text-xl font-semibold mb-4 dark:text-gray-100 cursor-pointer" onClick={() => setShowMainQuest(!showMainQuest)}>
+                        Main Quest {showMainQuest ? '▲' : '▼'}
+                      </h2>
+                      {showMainQuest && (
+                        <p className="text-gray-600 dark:text-gray-400">{story.mainQuest}</p>
+                      )}
                     </div>
                     <div>
-                      <h2 className="text-xl font-semibold mb-4 dark:text-gray-100">Starting Scene</h2>
-                      <p className="text-gray-600 dark:text-gray-400">{story.startingScene}</p>
+                      <h2 className="text-xl font-semibold mb-4 dark:text-gray-100 cursor-pointer" onClick={() => setShowStartingScene(!showStartingScene)}>
+                        Starting Scene {showStartingScene ? '▲' : '▼'}
+                      </h2>
+                      {showStartingScene && (
+                        <p className="text-gray-600 dark:text-gray-400">{story.startingScene}</p>
+                      )}
                     </div>
                   </div>
     
