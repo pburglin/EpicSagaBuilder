@@ -62,8 +62,8 @@ export async function initializeMessageHistory(systemPrompt: string, inStoryId: 
 
 async function summarizeMessages(messages: LLMMessage[]): Promise<string> {
 
-  let contentToSummarize = messages[0].content + '\n\n'; // Include current story context
-  let totalSize = contentToSummarize.length;
+  let contentToSummarize = '';
+  let totalSize = 0;
   const maxSize = 10 * 1024; // 10KB
 
   // Summarize messages in reverse order, from most recent to oldest
@@ -74,6 +74,8 @@ async function summarizeMessages(messages: LLMMessage[]): Promise<string> {
 
     if (totalSize + messageSize > maxSize) {
       console.log('maxSize exceeded, breaking to avoid LLM limits but we will lose some context');
+      console.log('totalSize:', totalSize);
+      console.log('i:', i);
       break;
     }
 
@@ -81,6 +83,9 @@ async function summarizeMessages(messages: LLMMessage[]): Promise<string> {
     totalSize += messageSize;
   }
   
+  // always add current story context to the beginning
+  contentToSummarize = messages[0].content + '\n\n' + contentToSummarize;
+
   const summaryPrompt = `Summarize the following story context with text only into a concise paragraph, preserving key details like character names, gender, places, dates etc, maintaining narrative continuity:\n\n${contentToSummarize}`;
   console.log('context summaryPrompt:', summaryPrompt);
 
@@ -135,6 +140,7 @@ async function getMessageHistory(): Promise<LLMMessage[]> {
         content: `${storyContext}`
       });
     }
+    console.log('messagesToSummarize:', messagesToSummarize);
 
     //console.log('1 context messageHistory: ', messageHistory);
 
