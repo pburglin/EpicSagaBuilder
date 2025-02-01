@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Send, Timer, LogOut, CheckCircle, Swords, Target, ArrowRight, Heart, Users, Search, Moon } from 'lucide-react';
+import { Send, Timer, LogOut, CheckCircle, Swords, Target, ArrowRight, Heart, Users, Search, Moon, ChevronUp, ChevronDown } from 'lucide-react';
 import { Character } from '../types';
 import { getEstimatedProgress } from '../lib/llm-store';
 
@@ -25,6 +25,8 @@ export default function StoryConsole({
   const [progressStartTime, setProgressStartTime] = useState<number | null>(null);
   const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null);
   const [progress, setProgress] = useState(0);
+  const [quickActionsVisible, setQuickActionsVisible] = useState(window.innerWidth > 768);
+  const toggleQuickActions = () => setQuickActionsVisible(!quickActionsVisible);
   
   const QUICK_ACTIONS = [
     { action: 'attack melee', icon: Swords },
@@ -105,11 +107,14 @@ export default function StoryConsole({
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 space-y-4">
       {/* Status Bar */}
       <div className="flex items-center justify-between">
-        <div className={`flex items-center space-x-2 ${
-          timer >= 60 ? 'text-red-600 animate-pulse' : 'text-gray-600 dark:text-gray-400'
-        }`}>
-          <Timer className="h-5 w-5" />
-          <span>{Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}</span>
+        <div className="flex items-center space-x-2">
+          <button onClick={toggleQuickActions} className="focus:outline-none">
+            {quickActionsVisible ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+          </button>
+          <div className={`flex items-center space-x-2 ${timer >= 60 ? 'text-red-600 animate-pulse' : 'text-gray-600 dark:text-gray-400'}`}>
+            <Timer className="h-5 w-5" />
+            <span>{Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}</span>
+          </div>
         </div>
         {!isEnabled && (
           <span className="text-sm text-gray-500 dark:text-gray-400 italic">
@@ -117,24 +122,25 @@ export default function StoryConsole({
           </span>
         )}
       </div>
-      {/* Quick Actions */}
-      <div className="flex flex-wrap gap-2">
-        {QUICK_ACTIONS.map(({ action, icon: Icon }) => (
-          <button
-            key={action}
-            onClick={() => handleQuickAction(action)}
-            disabled={!isEnabled}
-            className={`px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${
-              isEnabled
-                ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-500'
-            }`}
-          >
-            <Icon className="h-4 w-4" />
-            {action}
-          </button>
-        ))}
-      </div>
+      {quickActionsVisible && (
+        <div className="flex flex-wrap gap-2">
+          {QUICK_ACTIONS.map(({ action, icon: Icon }) => (
+            <button
+              key={action}
+              onClick={() => handleQuickAction(action)}
+              disabled={!isEnabled}
+              className={`px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${
+                isEnabled
+                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-500'
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {action}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Character Action Input */}
       <form onSubmit={handleSubmit} className="flex items-center gap-2">
