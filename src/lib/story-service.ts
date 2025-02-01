@@ -343,6 +343,18 @@ export async function startNewRound(storyId: string): Promise<string | null> {
   return data;
 }
 
+export async function updateStoryContext(storyId: string, context: string): Promise<void> {
+  console.log('Updating story context:', { storyId, context });
+  const { error } = await supabase
+    .from('stories')
+    .update({ story_context: context })
+    .eq('id', storyId);
+
+  if (error) {
+    throw new Error('Failed to update story context');
+  }
+}
+
 export async function recordPlayerAction(roundId: string, characterId: string): Promise<void> {
   const { error } = await supabase.rpc('record_player_action', {
     round_id: roundId,

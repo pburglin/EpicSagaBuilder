@@ -1,4 +1,4 @@
-import { loadStoryMessages } from './story-service';
+import { loadStoryMessages, updateStoryContext } from './story-service';
 import { updateLastResponseTime } from './llm-store';
 
 interface LLMMessage {
@@ -24,8 +24,12 @@ interface LLMResponse {
 // Message history management
 let messageHistory: LLMMessage[] = [];
 
-export async function initializeMessageHistory(systemPrompt: string, storyId: string): Promise<void> {
+let storyId: string = '';
+
+export async function initializeMessageHistory(systemPrompt: string, inStoryId: string): Promise<void> {
   //console.log('Initializing message history with system prompt');
+
+  storyId = inStoryId;
   
   // Load all narrator messages from the story
   const storyMessages = await loadStoryMessages(storyId);
@@ -60,15 +64,18 @@ async function summarizeMessages(messages: LLMMessage[]): Promise<string> {
   let totalSize = 0;
   const maxSize = 10 * 1024; // 10KB
 
-  for (const msg of messages) {
+  // Summarize messages in reverse order, from most recent to oldest
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const msg = messages[i];
     const messageContent = msg.content + '\n\n';
     const messageSize = new TextEncoder().encode(messageContent).length;
 
     if (totalSize + messageSize > maxSize) {
+      console.log('maxSize exceeded, breaking to avoid LLM limits but we will lose some context');
       break;
     }
 
-    contentToSummarize += messageContent;
+    contentToSummarize = messageContent + contentToSummarize;
     totalSize += messageSize;
   }
   
@@ -80,8 +87,8 @@ async function summarizeMessages(messages: LLMMessage[]): Promise<string> {
     messages: [
       { role: 'user', content: summaryPrompt }
     ],
-    max_tokens: import.meta.env.VITE_LLM_SUMMARY_TOKENS || 512,
-    temperature: import.meta.env.VITE_LLM_SUMMARY_TEMPERATURE || 0.3,
+    max_tokens: Number(import.meta.env.VITE_LLM_SUMMARY_TOKENS || 512),
+    temperature: Number(import.meta.env.VITE_LLM_SUMMARY_TEMPERATURE || 0.3),
   };
 
   const response = await fetch(import.meta.env.VITE_LLM_API_ENDPOINT, {
@@ -132,6 +139,13 @@ async function getMessageHistory(): Promise<LLMMessage[]> {
     storyContext = await summarizeMessages(messagesToSummarize);
     console.log('Created new story context:', storyContext);
     
+    // Update story context in database
+    if (storyId) {
+      await updateStoryContext(storyId, storyContext);
+    } else {
+      console.error('No storyId found, cannot persist story context');
+    }
+    
     // Remove the summarized messages from history
     messageHistory = messageHistory.filter(
       msg => !messagesToSummarize.includes(msg)
@@ -144,7 +158,12 @@ async function getMessageHistory(): Promise<LLMMessage[]> {
     messageHistory = messageHistory.slice(1,1);
   }
 
-  // Add story context if available
+  // Inject story context if available
+  // messageHistory format will be:
+  // 1. system prompt with story mechanics
+  // 2. updated story context
+  // 3. most recent assistant messages, as many we can fit without causing prompt to exceed max tokens
+  // 4. user message
   console.log('3 storyContext: ', storyContext);
   if (storyContext) {
     messageHistory.splice(1, 0,{
@@ -208,7 +227,8 @@ export async function aiOptimize(input: string): Promise<string> {
 }
 
 async function generateImageFromText(text: string): Promise<string> {
-  const truncatedText = text.length > 1000 ? text.substring(0, 1000) : text;
+  const imagePromptMaxChars = Number(import.meta.env.VITE_IMAGE_PROMPT_MAX_CHARS || 1024);
+  const truncatedText = text.length > imagePromptMaxChars ? text.substring(0, imagePromptMaxChars) : text;
   const imagePrompt = `https://image.pollinations.ai/prompt/anime style ${truncatedText}`;
   console.log('imagePrompt: ', imagePrompt);
   return imagePrompt;
@@ -224,8 +244,8 @@ export async function generateNarration(prompt: string): Promise<{ text: string;
   const requestPayload = {
     model: import.meta.env.VITE_LLM_MODEL_NAME,
     messages,
-    max_tokens: import.meta.env.VITE_LLM_MAX_TOKENS || 1024,
-    temperature: import.meta.env.VITE_LLM_STORY_TEMPERATURE || 0.7,
+    max_tokens: Number(import.meta.env.VITE_LLM_MAX_TOKENS || 1024),
+    temperature: Number(import.meta.env.VITE_LLM_STORY_TEMPERATURE || 0.7),
   };
 
   console.log('🚀 LLM Request:', {
