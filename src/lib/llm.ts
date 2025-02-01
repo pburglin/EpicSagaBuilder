@@ -1,4 +1,4 @@
-import { loadStoryMessages, updateStoryContext } from './story-service';
+import { loadStoryMessages, loadStoryContext, updateStoryContext } from './story-service';
 import { updateLastResponseTime } from './llm-store';
 
 interface LLMMessage {
@@ -25,12 +25,16 @@ interface LLMResponse {
 let messageHistory: LLMMessage[] = [];
 
 let storyId: string = '';
+let storyContext: string = '';
 
 export async function initializeMessageHistory(systemPrompt: string, inStoryId: string): Promise<void> {
   //console.log('Initializing message history with system prompt');
 
   storyId = inStoryId;
   
+  // Load story context from the database
+  storyContext = await loadStoryContext(storyId);
+
   // Load all narrator messages from the story
   const storyMessages = await loadStoryMessages(storyId);
 
@@ -56,16 +60,14 @@ export async function initializeMessageHistory(systemPrompt: string, inStoryId: 
   console.log('messageHistory: ', messageHistory);
 }
 
-let storyContext: string | null = null;
-
 async function summarizeMessages(messages: LLMMessage[]): Promise<string> {
 
-  let contentToSummarize = '';
-  let totalSize = 0;
+  let contentToSummarize = messages[0].content + '\n\n'; // Include current story context
+  let totalSize = contentToSummarize.length;
   const maxSize = 10 * 1024; // 10KB
 
   // Summarize messages in reverse order, from most recent to oldest
-  for (let i = messages.length - 1; i >= 0; i--) {
+  for (let i = messages.length - 1; i >= 1; i--) {
     const msg = messages[i];
     const messageContent = msg.content + '\n\n';
     const messageSize = new TextEncoder().encode(messageContent).length;
@@ -121,23 +123,23 @@ async function getMessageHistory(): Promise<LLMMessage[]> {
   const messagesToSummarize = messageHistory.filter(msg => msg.role === 'assistant');
   
   // Update story summary
-  console.log('Starting summarize messages block');
+  console.log('Starting message summarization');
   console.log('messagesToSummarize.length: ', messagesToSummarize.length);
 
   try {
     // include existing storyContext if it exists
     if (storyContext && storyContext.trim().length > 0) {
-      console.log('Incorporating existing story context into summary');
+      console.log('Incorporating existing story context into summary: ', storyContext);
       messagesToSummarize.unshift({
         role: 'assistant',
         content: `${storyContext}`
       });
     }
 
-    console.log('1 context messageHistory: ', messageHistory);
+    //console.log('1 context messageHistory: ', messageHistory);
 
     storyContext = await summarizeMessages(messagesToSummarize);
-    console.log('Created new story context:', storyContext);
+    console.log('New story context:', storyContext);
     
     // Update story context in database
     if (storyId) {
@@ -150,7 +152,7 @@ async function getMessageHistory(): Promise<LLMMessage[]> {
     messageHistory = messageHistory.filter(
       msg => !messagesToSummarize.includes(msg)
     );
-    console.log('2 context messageHistory: ', messageHistory);
+    //console.log('2 context messageHistory: ', messageHistory);
 
   } catch (error) {
     console.error('Error summarizing messages:', error);
@@ -164,7 +166,8 @@ async function getMessageHistory(): Promise<LLMMessage[]> {
   // 2. updated story context
   // 3. most recent assistant messages, as many we can fit without causing prompt to exceed max tokens
   // 4. user message
-  console.log('3 storyContext: ', storyContext);
+  
+  //console.log('Final storyContext: ', storyContext);
   if (storyContext) {
     messageHistory.splice(1, 0,{
       role: 'assistant',
@@ -172,7 +175,7 @@ async function getMessageHistory(): Promise<LLMMessage[]> {
     });
   }
   
-  console.log('Current message history:', messageHistory);
+  console.log('Final message history:', messageHistory);
 
   return messageHistory;
 }

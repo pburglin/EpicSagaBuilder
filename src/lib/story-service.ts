@@ -343,8 +343,22 @@ export async function startNewRound(storyId: string): Promise<string | null> {
   return data;
 }
 
+export async function loadStoryContext(storyId: string): Promise<string> {
+  const { data, error } = await supabase
+    .from('stories')
+    .select(`story_context`)
+    .eq('id', storyId)
+    .single();
+
+    if (error || !data) {
+      throw new Error('Failed to loadStoryContext');
+    }
+  
+    return data.story_context;
+}
+
 export async function updateStoryContext(storyId: string, context: string): Promise<void> {
-  console.log('Updating story context:', { storyId, context });
+  //console.log('Updating story context:', { storyId, context });
   const { error } = await supabase
     .from('stories')
     .update({ story_context: context })
