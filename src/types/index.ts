@@ -13,6 +13,7 @@ export interface Story {
   mainQuest: string;
   characters: Character[];
   storyMechanics?: string;
+  storyContext?: string;
   is_private: boolean;
   created_by?: string;
   cloned_from?: string;

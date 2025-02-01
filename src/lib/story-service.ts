@@ -73,6 +73,7 @@ export async function loadStoryWithCharacters(
     cloned_from: data.cloned_from,
     is_private: data.is_private || false,
     storyMechanics: data.story_mechanics,
+    storyContext: data.story_context,
     characters
   };
 }
@@ -121,6 +122,8 @@ export async function getFeaturedStories(limit: number = 3): Promise<Story[]> {
     startingScene: story.starting_scene,
     mainQuest: story.main_quest,
     is_private: story.is_private || false,
+    storyMechanics: story.story_mechanics,
+    storyContext: story.story_context,
     characters: ((story.characters as DatabaseCharacter[]) || [])
       .filter((char) => char.status === 'active')
       .map((char) => ({

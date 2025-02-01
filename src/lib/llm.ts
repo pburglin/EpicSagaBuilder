@@ -1,4 +1,4 @@
-import { loadStoryMessages, loadStoryWithCharacters } from './story-service';
+import { loadStoryMessages } from './story-service';
 import { updateLastResponseTime } from './llm-store';
 
 interface LLMMessage {
@@ -55,11 +55,24 @@ export async function initializeMessageHistory(systemPrompt: string, storyId: st
 let storyContext: string | null = null;
 
 async function summarizeMessages(messages: LLMMessage[]): Promise<string> {
-  const contentToSummarize = messages
-    .map(msg => msg.content)
-    .join('\n\n');
+
+  let contentToSummarize = '';
+  let totalSize = 0;
+  const maxSize = 10 * 1024; // 10KB
+
+  for (const msg of messages) {
+    const messageContent = msg.content + '\n\n';
+    const messageSize = new TextEncoder().encode(messageContent).length;
+
+    if (totalSize + messageSize > maxSize) {
+      break;
+    }
+
+    contentToSummarize += messageContent;
+    totalSize += messageSize;
+  }
   
-  const summaryPrompt = `Summarize with text only the following story context into a concise paragraph, preserving key details like names, places, dates etc, maintaining narrative continuity:\n\n${contentToSummarize}`;
+  const summaryPrompt = `Summarize the following story context with text only into a concise paragraph, preserving key details like character names, gender, places, dates etc, maintaining narrative continuity:\n\n${contentToSummarize}`;
   console.log('context summaryPrompt:', summaryPrompt);
 
   const requestPayload = {
@@ -67,8 +80,8 @@ async function summarizeMessages(messages: LLMMessage[]): Promise<string> {
     messages: [
       { role: 'user', content: summaryPrompt }
     ],
-    max_tokens: 512,
-    temperature: 0.3,
+    max_tokens: import.meta.env.VITE_LLM_SUMMARY_TOKENS || 512,
+    temperature: import.meta.env.VITE_LLM_SUMMARY_TEMPERATURE || 0.3,
   };
 
   const response = await fetch(import.meta.env.VITE_LLM_API_ENDPOINT, {
@@ -89,7 +102,6 @@ async function summarizeMessages(messages: LLMMessage[]): Promise<string> {
 }
 
 async function getMessageHistory(): Promise<LLMMessage[]> {
-  const maxHistory = Number(import.meta.env.VITE_LLM_MAX_HISTORY);
   
   // Always include the system message
   const systemMessage = messageHistory.find(msg => msg.role === 'system');
@@ -98,56 +110,38 @@ async function getMessageHistory(): Promise<LLMMessage[]> {
     throw new Error('No system message found');
   }
 
-  // Get all non-system messages
-  const allNonSystemMessages = messageHistory.filter(msg => msg.role !== 'system');
+  // Get all assistant messages to update story summary
+  const messagesToSummarize = messageHistory.filter(msg => msg.role === 'assistant');
   
-  // Check if we need to summarize
-  if (allNonSystemMessages.length > 3 && allNonSystemMessages.length > maxHistory) {
+  // Update story summary
+  console.log('Starting summarize messages block');
+  console.log('messagesToSummarize.length: ', messagesToSummarize.length);
 
-    console.log('Starting summarize messages block');
-    console.log('allNonSystemMessages.length: ', allNonSystemMessages.length);
-    console.log('maxHistory: ', maxHistory);
-
-    const excessMessages = allNonSystemMessages.length - maxHistory;
-    console.log('excessMessages: ', excessMessages);
-
-    // Get oldest exceeding assistant messages for summarization
-    const oldestAssistantMessages = allNonSystemMessages
-      .filter(msg => msg.role === 'assistant')
-      .slice(0, excessMessages);
-
-    console.log('oldestAssistantMessages.length: ', oldestAssistantMessages.length);
-
-    if (oldestAssistantMessages.length > 0) {
-      try {
-
-        // Only include existing storyContext if it has content
-        const messagesToSummarize = [...oldestAssistantMessages];
-        if (storyContext && storyContext.trim().length > 0) {
-          console.log('Incorporating existing story context into summary');
-          messagesToSummarize.unshift({
-            role: 'assistant',
-            content: `Previous Story Context: ${storyContext}`
-          });
-        }
-
-        console.log('1 context messageHistory: ', messageHistory);
-
-        storyContext = await summarizeMessages(messagesToSummarize);
-        console.log('Created new story context:', storyContext);
-        
-        // Remove the summarized messages from history
-        messageHistory = messageHistory.filter(
-          msg => !oldestAssistantMessages.includes(msg)
-        );
-        console.log('2 context messageHistory: ', messageHistory);
-
-      } catch (error) {
-        console.error('Error summarizing messages:', error);
-        // Fall back to removing oldest message if summarization fails; do not remove system message
-        messageHistory = messageHistory.slice(1,1);
-      }
+  try {
+    // include existing storyContext if it exists
+    if (storyContext && storyContext.trim().length > 0) {
+      console.log('Incorporating existing story context into summary');
+      messagesToSummarize.unshift({
+        role: 'assistant',
+        content: `${storyContext}`
+      });
     }
+
+    console.log('1 context messageHistory: ', messageHistory);
+
+    storyContext = await summarizeMessages(messagesToSummarize);
+    console.log('Created new story context:', storyContext);
+    
+    // Remove the summarized messages from history
+    messageHistory = messageHistory.filter(
+      msg => !messagesToSummarize.includes(msg)
+    );
+    console.log('2 context messageHistory: ', messageHistory);
+
+  } catch (error) {
+    console.error('Error summarizing messages:', error);
+    // Fall back to removing oldest message if summarization fails; do not remove system message
+    messageHistory = messageHistory.slice(1,1);
   }
 
   // Add story context if available
@@ -181,8 +175,8 @@ export async function aiOptimize(input: string): Promise<string> {
     messages: [
       { role: 'user', content: prompt }
     ],
-    max_tokens: 512,
-    temperature: 0.7,
+    max_tokens: import.meta.env.VITE_LLM_SUMMARY_TOKENS || 512,
+    temperature: import.meta.env.VITE_LLM_STORY_TEMPERATURE || 0.7,
   };
 
   try {
@@ -230,8 +224,8 @@ export async function generateNarration(prompt: string): Promise<{ text: string;
   const requestPayload = {
     model: import.meta.env.VITE_LLM_MODEL_NAME,
     messages,
-    max_tokens: Number(import.meta.env.VITE_LLM_MAX_TOKENS),
-    temperature: 0.7,
+    max_tokens: import.meta.env.VITE_LLM_MAX_TOKENS || 1024,
+    temperature: import.meta.env.VITE_LLM_STORY_TEMPERATURE || 0.7,
   };
 
   console.log('🚀 LLM Request:', {
