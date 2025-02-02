@@ -203,8 +203,8 @@ export async function aiOptimize(input: string): Promise<string> {
     messages: [
       { role: 'user', content: prompt }
     ],
-    max_tokens: import.meta.env.VITE_LLM_SUMMARY_TOKENS || 512,
-    temperature: import.meta.env.VITE_LLM_STORY_TEMPERATURE || 0.7,
+    max_tokens: Number(import.meta.env.VITE_LLM_SUMMARY_TOKENS || 512),
+    temperature: Number(import.meta.env.VITE_LLM_STORY_TEMPERATURE || 0.7),
   };
 
   try {
