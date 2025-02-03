@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Allow: /stories
+Allow: /faq
+Allow: /terms
+Allow: /profile
+Allow: /leaderboard
+
+# Protect sensitive routes
+Disallow: /api/
+Disallow: /.env
+Disallow: /.env.example
+Disallow: /src/
+Disallow: /supabase/
+
+# Crawl-delay for better server performance
+Crawl-delay: 10
+
+Sitemap: https://eventfy.com/sitemap.xml
