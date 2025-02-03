@@ -116,8 +116,10 @@ export default function Terms() {
           <div className="bg-gray-50 border rounded-lg p-6 mt-12">
             <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
             <p className="text-gray-600">
-              If you have any questions about these Terms of Use, please contact us at:
-              support@epicsagabuilder.com
+              If you have any questions about these Terms of Use, please contact us at: 
+              <a href="https://github.com/pburglin/EpicSagaBuilder/issues" className="text-indigo-600 underline">
+              https://github.com/pburglin/EpicSagaBuilder/issues
+              </a>
             </p>
           </div>
         </div>
