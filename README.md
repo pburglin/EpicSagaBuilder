@@ -1,5 +1,7 @@
 # Epic Saga Builder
 
+[![Website Status](https://img.shields.io/website?url=https%3A%2F%2Feventfy.com)](https://eventfy.com)
+
 Epic Saga Builder is a collaborative storytelling platform where players and AI work together to create immersive fantasy adventures. The platform combines human creativity with AI-powered narration to create unique, dynamic stories that evolve based on player actions.
 
 You can visit and give the project a try here: (https://eventfy.com)
