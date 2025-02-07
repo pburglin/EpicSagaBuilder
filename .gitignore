@@ -15,6 +15,7 @@ dist-ssr
 .env
 .env.chatgpt
 .env.deepseek
+.env.gemini
 
 # Editor directories and files
 .vscode/*
