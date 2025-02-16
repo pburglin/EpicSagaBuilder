@@ -10,15 +10,17 @@ interface StoryConsoleProps {
   onLeaveStory: () => void;
   onCompleteStory: () => void;
   isEnabled: boolean;
+  hasError?: boolean;
 }
 
-export default function StoryConsole({ 
+export default function StoryConsole({
   story,
-  onSendMessage, 
-  character, 
+  onSendMessage,
+  character,
   onLeaveStory,
   onCompleteStory,
-  isEnabled 
+  isEnabled,
+  hasError = false
 }: StoryConsoleProps) {
   const [message, setMessage] = useState('');
   const [timer, setTimer] = useState(0);
@@ -116,6 +118,11 @@ export default function StoryConsole({
             <span>{Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}</span>
           </div>
         </div>
+        {hasError && (
+          <span className="text-sm text-red-600 animate-pulse italic">
+            The AI is experiencing high traffic. Please try again in a few moments...
+          </span>
+        )}
         {!isEnabled && (
           <span className="text-sm text-gray-500 dark:text-gray-400 italic">
             {getWaitingMessage()}

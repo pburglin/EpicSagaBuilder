@@ -211,7 +211,13 @@ export default function StorySession() {
         setIsActionEnabled(true);
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to send message');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
+      // Check if it's a rate limit error (429)
+      if (error instanceof Error && errorMessage.includes('429')) {
+        setError('429');
+      } else {
+        setError(errorMessage);
+      }
       setIsActionEnabled(true);
     }
   }
@@ -346,61 +352,61 @@ export default function StorySession() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3 space-y-4">
+            <div className="lg:col-span-3 space-y-4">
             <div className="bg-white rounded-lg shadow-lg p-6 mb-4">
               <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold">{story.title}</h1>
-                <div className="flex space-x-2">
-                  <div className="flex items-center space-x-2">
-                    {speechSupportedRef.current && (
-                      <>
-                        <button
-                          onClick={() => setAreStoryImagesHidden(!areStoryImagesHidden)}
-                          title={areStoryImagesHidden ? "Hide Images" : "Show Images"}
-                          className={`p-2 rounded-md hover:bg-opacity-80 transition-colors ${
-                            areStoryImagesHidden
-                              ? 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                              : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                          }`}
-                        >
-                          {areStoryImagesHidden ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                        </button>
-                        <button
-                          onClick={handleNarrationToggle}
-                          title={isNarrationEnabled ? "Disable Audio Narration" : "Enable Audio Narration"}
-                          className={`p-2 rounded-md hover:bg-opacity-80 transition-colors ${
-                            isNarrationEnabled
-                              ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                          }`}
-                        >
-                          {isNarrationEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
-                        </button>
-                      </>
-                    )}
-                    <button
-                      onClick={handleRestartStory}
-                      title="Restart Story"
-                      className="p-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors"
-                    >
-                      <RotateCcw className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={handleLeaveStory}
-                      title="Leave Story"
-                      className="p-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-                    >
-                      <LogOut className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={handleCompleteStory}
-                      title="Complete Story"
-                      className="p-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                    >
-                      <CheckCircle className="h-5 w-5" />
-                    </button>
-                  </div>
+              <h1 className="text-2xl font-bold">{story.title}</h1>
+              <div className="flex space-x-2">
+                <div className="flex items-center space-x-2">
+                {speechSupportedRef.current && (
+                  <>
+                  <button
+                    onClick={() => setAreStoryImagesHidden(!areStoryImagesHidden)}
+                    title={areStoryImagesHidden ? "Hide Images" : "Show Images"}
+                    className={`p-2 rounded-md hover:bg-opacity-80 transition-colors ${
+                    areStoryImagesHidden
+                      ? 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                    }`}
+                  >
+                    {areStoryImagesHidden ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                  <button
+                    onClick={handleNarrationToggle}
+                    title={isNarrationEnabled ? "Disable Audio Narration" : "Enable Audio Narration"}
+                    className={`p-2 rounded-md hover:bg-opacity-80 transition-colors ${
+                    isNarrationEnabled
+                      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    {isNarrationEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+                  </button>
+                  </>
+                )}
+                <button
+                  onClick={handleRestartStory}
+                  title="Restart Story"
+                  className="p-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors"
+                >
+                  <RotateCcw className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={handleLeaveStory}
+                  title="Leave Story"
+                  className="p-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                >
+                  <LogOut className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={handleCompleteStory}
+                  title="Complete Story"
+                  className="p-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                >
+                  <CheckCircle className="h-5 w-5" />
+                </button>
                 </div>
+              </div>
               </div>
             </div>
 
@@ -410,27 +416,27 @@ export default function StorySession() {
               ref={messagesContainerRef}
             >
               <div className="flex flex-col">
-                {messages
-                  .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-                  .map((message, index) => {
-                    const messageIndex = message.type === 'narrator' ?
-                      messages
-                        .slice(0, index + 1)
-                        .filter(msg => msg.type === 'narrator')
-                        .findIndex(msg => msg.id === message.id) + 1 : undefined;
-                    return (
-                      <StoryMessage
-                        key={message.id}
-                        content={message.content}
-                        type={message.type}
-                        character={message.character}
-                        timestamp={message.createdAt}
-                        currentCharacter={character}
-                        messageIndex={messageIndex}
-                        areStoryImagesHidden={areStoryImagesHidden}
-                      />
-                    );
-                  })}
+              {messages
+                .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                .map((message, index) => {
+                const messageIndex = message.type === 'narrator' ?
+                  messages
+                  .slice(0, index + 1)
+                  .filter(msg => msg.type === 'narrator')
+                  .findIndex(msg => msg.id === message.id) + 1 : undefined;
+                return (
+                  <StoryMessage
+                  key={message.id}
+                  content={message.content}
+                  type={message.type}
+                  character={message.character}
+                  timestamp={message.createdAt}
+                  currentCharacter={character}
+                  messageIndex={messageIndex}
+                  areStoryImagesHidden={areStoryImagesHidden}
+                  />
+                );
+                })}
               </div>
             </div>
 
@@ -441,8 +447,9 @@ export default function StorySession() {
               onLeaveStory={handleLeaveStory}
               onCompleteStory={handleCompleteStory}
               isEnabled={isActionEnabled && story.status === 'active'}
+              hasError={!!error}
             />
-          </div>
+            </div>
 
           <div className="lg:col-span-1">
             <CharacterList
