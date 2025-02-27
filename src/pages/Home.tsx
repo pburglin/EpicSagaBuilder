@@ -7,12 +7,16 @@ import StoryCard from '../components/StoryCard';
 import FeatureCard from '../components/FeatureCard';
 import { getFeaturedStories } from '../lib/story-service';
 import type { Story } from '../types';
+import { useAuth } from '../contexts/AuthContext';
+import AuthModal from '../components/AuthModal';
 
 const FEATURED_STORIES_LIMIT = 3;
 
 export default function Home() {
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     async function loadFeaturedStories() {
@@ -29,10 +33,20 @@ export default function Home() {
     loadFeaturedStories();
   }, []);
 
+  const handleCreateStoryClick = () => {
+    if (!user) {
+      setShowAuthModal(true);
+    } else {
+      window.location.href = '/stories/new';
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      
+      {showAuthModal && (
+        <AuthModal isOpen={true} onClose={() => setShowAuthModal(false)} />
+      )}
       <main className="flex-grow">
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-800 dark:to-purple-800 text-white py-20">
@@ -46,12 +60,12 @@ export default function Home() {
                 Join forces with other storytellers and our AI to create epic adventures that will be remembered forever.
               </p>
               <div className="flex justify-center space-x-4">
-                <Link
-                  to="/stories/new"
+                <button
+                  onClick={handleCreateStoryClick}
                   className="bg-white text-indigo-600 dark:bg-indigo-600 dark:text-white px-6 py-3 rounded-md font-medium hover:bg-gray-100 dark:hover:bg-indigo-700 transition-colors duration-200"
                 >
                   Create New Story
-                </Link>
+                </button>
                 <Link
                   to="/stories"
                   className="bg-white text-indigo-600 dark:bg-indigo-600 dark:text-white px-6 py-3 rounded-md font-medium hover:bg-gray-100 dark:hover:bg-indigo-700 transition-colors duration-200"

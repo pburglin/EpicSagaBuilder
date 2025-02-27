@@ -152,6 +152,21 @@ export default function CreateStory() {
     }));
   }
 
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-grow container mx-auto px-4 py-8">
+          <div className="max-w-3xl mx-auto">
+            <h1 className="text-3xl font-bold mb-8">Create New Story</h1>
+            <p className="text-red-600">You must sign in before you can create or join stories.</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
