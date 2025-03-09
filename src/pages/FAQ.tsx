@@ -1,4 +1,4 @@
-import { Sparkles, Users, BookOpen, Sword, Shield, Palette } from 'lucide-react';
+import { Sparkles, Users, BookOpen, Sword, Shield, Palette, Globe } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -196,6 +196,31 @@ export default function FAQ() {
                 <li>Consistent world-building</li>
                 <li>Balance between action and dialogue</li>
                 <li>Satisfying character development</li>
+              </ul>
+            </FAQItem>
+          </FAQSection>
+
+          <FAQSection title="Other apps from this author" icon={<Globe className="h-6 w-6" />}>
+            <FAQItem question="What other apps are available from this author?">
+              <ul className="list-disc list-inside space-y-3">
+                <li>
+                  <a href="https://RocketMoto.us" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-800 font-medium">
+                    RocketMoto
+                  </a>
+                  <p className="mt-1">Discover new routes to explore with your motorcycle.</p>
+                </li>
+                <li>
+                  <a href="https://SiteCheck.us" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-800 font-medium">
+                    SiteCheck
+                  </a>
+                  <p className="mt-1">Track website availability status, check SSL certificates and more.</p>
+                </li>
+                <li>
+                  <a href="https://RocketMap.netlify.app" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-800 font-medium">
+                    RocketMap
+                  </a>
+                  <p className="mt-1">Track your position against property boundaries.</p>
+                </li>
               </ul>
             </FAQItem>
           </FAQSection>
