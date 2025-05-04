@@ -178,17 +178,17 @@ export async function loadStoryMessages(storyId: string): Promise<Message[]> {
     characterId: message.character_id,
     createdAt: message.created_at,
     storyId: message.story_id,
-    character: message.characters ? {
-      id: message.characters.id,
-      name: message.characters.name,
-      class: message.characters.class,
-      race: message.characters.race,
-      description: message.characters.description,
-      imageUrl: message.characters.image_url || '',
-      userId: message.characters.user_id,
-      storyId: message.characters.story_id,
-      karmaPoints: message.characters.karma_points,
-      status: message.characters.status
+    character: message.characters && message.characters.length > 0 ? {
+      id: message.characters[0].id,
+      name: message.characters[0].name,
+      class: message.characters[0].class,
+      race: message.characters[0].race,
+      description: message.characters[0].description,
+      imageUrl: message.characters[0].image_url || '',
+      userId: message.characters[0].user_id,
+      storyId: message.characters[0].story_id,
+      karmaPoints: message.characters[0].karma_points,
+      status: message.characters[0].status
     } : undefined
   }));
 }
@@ -293,17 +293,17 @@ export async function sendCharacterMessage(
     characterId: data.character_id,
     createdAt: data.created_at,
     storyId: data.story_id,
-    character: data.character_id && data.characters ? {
-      id: data.characters.id,
-      name: data.characters.name,
-      class: data.characters.class,
-      race: data.characters.race,
-      description: data.characters.description,
-      imageUrl: data.characters.image_url || '',
-      userId: data.characters.user_id,
-      storyId: data.characters.story_id,
-      karmaPoints: data.characters.karma_points,
-      status: data.characters.status
+    character: data.character_id && data.characters && data.characters.length > 0 ? {
+      id: data.characters[0].id,
+      name: data.characters[0].name,
+      class: data.characters[0].class,
+      race: data.characters[0].race,
+      description: data.characters[0].description,
+      imageUrl: data.characters[0].image_url || '',
+      userId: data.characters[0].user_id,
+      storyId: data.characters[0].story_id,
+      karmaPoints: data.characters[0].karma_points,
+      status: data.characters[0].status
     } : undefined
   };
 }
@@ -354,7 +354,7 @@ export async function loadStoryContext(storyId: string): Promise<string> {
       throw new Error('Failed to loadStoryContext');
     }
   
-    return data.story_context;
+    return data.story_context || '';
 }
 
 export async function updateStoryContext(storyId: string, context: string): Promise<void> {

@@ -22,177 +22,146 @@ interface LLMResponse {
 }
 
 // Message history management
-let messageHistory: LLMMessage[] = [];
-
 let storyId: string = '';
-let storyContext: string = '';
+let coreStoryFacts: string = ''; // Tier 1: Core story facts
+let recentMessageBuffer: LLMMessage[] = []; // Tier 2: Recent messages
+let summarizedChunks: string[] = []; // Tier 3: Summarized older messages
 
 export async function initializeMessageHistory(systemPrompt: string, inStoryId: string): Promise<void> {
   //console.log('Initializing message history with system prompt');
 
   storyId = inStoryId;
   
-  // Load story context from the database
-  storyContext = await loadStoryContext(storyId);
+  // Load story context from the database into coreStoryFacts
+  coreStoryFacts = await loadStoryContext(storyId);
 
-  // Load all narrator messages from the story
+  // Load all narrator messages from the story into recentMessageBuffer
   const storyMessages = await loadStoryMessages(storyId);
 
-  const narratorMessages = storyMessages
+  recentMessageBuffer = storyMessages
     .filter(msg => msg.type === 'narrator')
     .map(msg => ({
       role: 'assistant' as const,
       content: msg.content
     }));
 
-  // Initialize history with system prompt and narrator messages only
-  // Excludes user character messages
-  messageHistory = [
-    { role: 'system', content: systemPrompt },
-    ...narratorMessages
-  ];
+  // Add the system prompt to the beginning of the recentMessageBuffer
+  recentMessageBuffer.unshift({ role: 'system', content: systemPrompt });
 
   console.log('Message history initialized with:', {
-    totalMessages: messageHistory.length,
-    narratorMessages: narratorMessages.length
+    coreStoryFacts: coreStoryFacts.length > 0 ? 'Loaded' : 'Empty',
+    recentMessageBufferLength: recentMessageBuffer.length
   });
 
-  console.log('messageHistory: ', messageHistory);
+  console.log('recentMessageBuffer: ', recentMessageBuffer);
 }
 
+// Remove the old summarizeMessages function
 async function summarizeMessages(messages: LLMMessage[]): Promise<string> {
-
-  let contentToSummarize = '';
-  let totalSize = 0;
-  const maxSize = 10 * 1024; // 10KB
-
-  // Summarize messages in reverse order, from most recent to oldest
-  for (let i = messages.length - 1; i >= 1; i--) {
-    const msg = messages[i];
-    const messageContent = msg.content + '\n\n';
-    const messageSize = new TextEncoder().encode(messageContent).length;
-
-    if (totalSize + messageSize > maxSize) {
-      console.log('maxSize exceeded, breaking to avoid LLM limits but we will lose some context');
-      console.log('totalSize:', totalSize);
-      console.log('i:', i);
-      break;
-    }
-
-    contentToSummarize = messageContent + contentToSummarize;
-    totalSize += messageSize;
-  }
-  
-  // always add current story context to the beginning
-  contentToSummarize = messages[0].content + '\n\n' + contentToSummarize;
-
-  const summaryPrompt = `Summarize the following story context with text only into a concise paragraph, preserving key details like character names, gender, places, dates etc, maintaining narrative continuity:\n\n${contentToSummarize}`;
-  console.log('context summaryPrompt:', summaryPrompt);
-
-  const requestPayload = {
-    model: import.meta.env.VITE_LLM_MODEL_NAME,
-    messages: [
-      { role: 'user', content: summaryPrompt }
-    ],
-    max_tokens: Number(import.meta.env.VITE_LLM_SUMMARY_TOKENS || 512),
-    temperature: Number(import.meta.env.VITE_LLM_SUMMARY_TEMPERATURE || 0.3),
-  };
-
-  const response = await fetch(import.meta.env.VITE_LLM_API_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + import.meta.env.VITE_LLM_API_KEY
-    },
-    body: JSON.stringify(requestPayload)
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to summarize messages');
-  }
-
-  const data: LLMResponse = await response.json();
-  return data.choices[0]?.message.content || '';
+  throw new Error("summarizeMessages is deprecated and should not be called.");
 }
+
+// Simple token estimation (characters / 4 is a common approximation)
+function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}
+
+// Implement new context management functions here
+// async function extractKeyFacts(messages: LLMMessage[]): Promise<string> { ... }
+// async function compressMessageBuffer(messages: LLMMessage[]): Promise<LLMMessage[]> { ... }
 
 async function getMessageHistory(): Promise<LLMMessage[]> {
-  
-  // Always include the system message
-  const systemMessage = messageHistory.find(msg => msg.role === 'system');
-  if (!systemMessage) {
-    console.error('No system message found in history!');
-    throw new Error('No system message found');
+  const messagesToSend: LLMMessage[] = [];
+  // Allow some buffer to avoid exceeding the token limit exactly
+  const maxTokens = Number(import.meta.env.VITE_LLM_MAX_TOKENS || 1024) * 0.9; 
+  let currentTokenCount = 0;
+
+  // 1. Add System Prompt (always included)
+  const systemMessage = recentMessageBuffer.find(msg => msg.role === 'system');
+  if (systemMessage) {
+    messagesToSend.push(systemMessage);
+    currentTokenCount += estimateTokens(systemMessage.content);
   }
 
-  // Get all assistant messages to update story summary
-  const messagesToSummarize = messageHistory.filter(msg => msg.role === 'assistant');
-  
-  // Update story summary
-  console.log('Starting message summarization');
-  console.log('messagesToSummarize.length: ', messagesToSummarize.length);
-
-  try {
-    // include existing storyContext if it exists
-    if (storyContext && storyContext.trim().length > 0) {
-      console.log('Incorporating existing story context into summary: ', storyContext);
-      messagesToSummarize.unshift({
-        role: 'assistant',
-        content: `${storyContext}`
-      });
-    }
-    console.log('messagesToSummarize:', messagesToSummarize);
-
-    //console.log('1 context messageHistory: ', messageHistory);
-
-    storyContext = await summarizeMessages(messagesToSummarize);
-    console.log('New story context:', storyContext);
-    
-    // Update story context in database
-    if (storyId) {
-      await updateStoryContext(storyId, storyContext);
+  // 2. Add Core Story Facts (if available)
+  if (coreStoryFacts) {
+    const coreFactsMessage: LLMMessage = { role: 'system', content: `Core Story Facts: ${coreStoryFacts}` };
+    const coreFactsTokenCount = estimateTokens(coreFactsMessage.content);
+    if (currentTokenCount + coreFactsTokenCount <= maxTokens) {
+      messagesToSend.push(coreFactsMessage);
+      currentTokenCount += coreFactsTokenCount;
     } else {
-      console.error('No storyId found, cannot persist story context');
+      console.warn('Not enough space for core story facts in context window.');
     }
-    
-    // Remove the summarized messages from history
-    messageHistory = messageHistory.filter(
-      msg => !messagesToSummarize.includes(msg)
-    );
-    //console.log('2 context messageHistory: ', messageHistory);
-
-  } catch (error) {
-    console.error('Error summarizing messages:', error);
-    // Fall back to removing oldest message if summarization fails; do not remove system message
-    messageHistory = messageHistory.slice(1,1);
   }
 
-  // Inject story context if available
-  // messageHistory format will be:
-  // 1. system prompt with story mechanics
-  // 2. updated story context
-  // 3. most recent assistant messages, as many we can fit without causing prompt to exceed max tokens
-  // 4. user message
-  
-  //console.log('Final storyContext: ', storyContext);
-  if (storyContext) {
-    messageHistory.splice(1, 0,{
-      role: 'assistant',
-      content: `${storyContext}`
-    });
+  // 3. Add Summarized Chunks (oldest first, as space allows)
+  for (const chunk of summarizedChunks) {
+    const chunkMessage: LLMMessage = { role: 'assistant', content: `Summary of previous events: ${chunk}` };
+    const chunkTokenCount = estimateTokens(chunkMessage.content);
+    if (currentTokenCount + chunkTokenCount <= maxTokens) {
+      messagesToSend.push(chunkMessage);
+      currentTokenCount += chunkTokenCount;
+    } else {
+      console.warn('Not enough space for all summarized chunks in context window.');
+      break; // Stop adding chunks if limit is reached
+    }
   }
-  
-  console.log('Final message history:', messageHistory);
 
-  return messageHistory;
+  // 4. Add Recent Messages (most recent first, as space allows)
+  const recentMessagesToAdd: LLMMessage[] = [];
+  for (let i = recentMessageBuffer.length - 1; i >= 0; i--) {
+    const message = recentMessageBuffer[i];
+    if (message.role === 'system') continue; // System message already added
+
+    const messageTokenCount = estimateTokens(message.content);
+    if (currentTokenCount + messageTokenCount <= maxTokens) {
+      recentMessagesToAdd.unshift(message); // Add to the beginning to maintain chronological order
+      currentTokenCount += messageTokenCount;
+    } else {
+      console.warn('Not enough space for all recent messages in context window.');
+      break; // Stop adding recent messages if limit is reached
+    }
+  }
+  messagesToSend.push(...recentMessagesToAdd);
+
+
+  console.log('Constructed message history for LLM:', {
+    messageCount: messagesToSend.length,
+    currentTokenCount: currentTokenCount
+  });
+
+  return messagesToSend;
 }
 
 async function addMessageToHistory(message: LLMMessage): Promise<void> {
-  messageHistory.push(message);
-  console.log('Added message to history:', {
+  // Add new messages to the recentMessageBuffer
+  recentMessageBuffer.push(message);
+  console.log('Added message to recentMessageBuffer:', {
     role: message.role,
     contentPreview: message.content.slice(0, 50) + '...',
-    totalMessages: messageHistory.length
+    totalMessages: recentMessageBuffer.length
   });
+
+  // TODO: Implement logic to manage recentMessageBuffer size and create summarized chunks
+  // For now, a simple trimming to a fixed size
+  const maxRecentMessages = 20; // Example: Keep up to 20 recent messages
+  if (recentMessageBuffer.length > maxRecentMessages) {
+    // Keep the system message and the most recent messages
+    const systemMessage = recentMessageBuffer.find(msg => msg.role === 'system');
+    const messagesToKeep = systemMessage ? [systemMessage, ...recentMessageBuffer.slice(-(maxRecentMessages - 1))] : recentMessageBuffer.slice(-maxRecentMessages);
+    
+    // TODO: Summarize the removed messages and add to summarizedChunks
+    const removedMessages = recentMessageBuffer.slice(systemMessage ? 1 : 0, -(maxRecentMessages - (systemMessage ? 1 : 0)));
+    if (removedMessages.length > 0) {
+      console.log(`Need to summarize ${removedMessages.length} old messages.`);
+      // This is where the summarize/extract key facts logic would be called
+      // For now, just discard them
+    }
+
+    recentMessageBuffer = messagesToKeep;
+    console.log(`Trimmed recentMessageBuffer to ${recentMessageBuffer.length} messages.`);
+  }
 }
 
 export async function aiOptimize(input: string): Promise<string> {
