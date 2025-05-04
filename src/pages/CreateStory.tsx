@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -6,6 +6,14 @@ import { sendNarratorMessage } from '../lib/story-service';
 import { aiOptimize } from '../lib/llm';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+
+const imageStyles = [
+  { value: 'anime style', name: 'Anime Style', description: 'Inspired by Japanese animation, this style features expressive characters, vibrant colors, and dramatic shading.' },
+  { value: 'Studio Ghibli style', name: 'Ghibliesque Style', description: 'Known for its soft color palettes, lush backgrounds, and whimsical storytelling elements.' },
+  { value: 'Disney style', name: 'WalterMouse Animation Style', description: 'Clean lines, exaggerated expressions, and bright, vibrant colors make this style instantly recognizable.' },
+  { value: 'realist style', name: 'Real', description: 'Strives to replicate real-world details with accurate lighting, shadows, and proportions.' },
+  { value: 'minimalism style', name: 'Minimalism', description: 'Uses clean lines, limited color palettes, and negative space to create sleek and modern visuals.' },
+];
 
 export default function CreateStory() {
   const { user } = useAuth();
@@ -25,8 +33,18 @@ export default function CreateStory() {
     characterRaces: '',
     isPrivate: false,
     storyMechanics: '',
-    imageStyle: 'anime style' // Default style
+    imageStyle: imageStyles[0].value // Default style
   });
+
+  const [selectedImageStyleDescription, setSelectedImageStyleDescription] = useState(imageStyles[0].description);
+
+  useEffect(() => {
+    const defaultStyle = imageStyles.find(style => style.value === formData.imageStyle);
+    if (defaultStyle) {
+      setSelectedImageStyleDescription(defaultStyle.description);
+    }
+  }, [formData.imageStyle]);
+
 
   async function handleOptimizeDescription() {
     if (!formData.description.trim()) {
@@ -152,6 +170,13 @@ export default function CreateStory() {
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
+
+    if (name === 'imageStyle') {
+      const selectedStyle = imageStyles.find(style => style.value === value);
+      if (selectedStyle) {
+        setSelectedImageStyleDescription(selectedStyle.description);
+      }
+    }
   }
 
   if (!user) {
@@ -321,12 +346,13 @@ export default function CreateStory() {
                 className="w-full px-3 py-2 border rounded-md"
                 required
               >
-                <option value="anime style">Anime Style – Inspired by Japanese animation, this style features expressive characters, vibrant colors, and dramatic shading.</option>
-                <option value="Studio Ghibli style">Ghibliesque Style – Known for its soft color palettes, lush backgrounds, and whimsical storytelling elements.</option>
-                <option value="Disney style">WalterMouse Animation Style – Clean lines, exaggerated expressions, and bright, vibrant colors make this style instantly recognizable.</option>
-                <option value="realist style">Real – Strives to replicate real-world details with accurate lighting, shadows, and proportions.</option>
-                <option value="minimalism style">Minimalism – Uses clean lines, limited color palettes, and negative space to create sleek and modern visuals.</option>
+                {imageStyles.map(style => (
+                  <option key={style.value} value={style.value}>{style.name}</option>
+                ))}
               </select>
+              <p className="mt-1 text-sm text-gray-500">
+                {selectedImageStyleDescription}
+              </p>
             </div>
 
             <div>

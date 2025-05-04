@@ -16,6 +16,14 @@ import { StoryPDF } from '../components/StoryPDF';
     import { supabase } from '../lib/supabase';
     import { stopSpeech, speakText } from '../lib/speech';
     
+    const imageStyles = [
+      { value: 'anime style', name: 'Anime Style', description: 'Inspired by Japanese animation, this style features expressive characters, vibrant colors, and dramatic shading.' },
+      { value: 'Studio Ghibli style', name: 'Ghibliesque Style', description: 'Known for its soft color palettes, lush backgrounds, and whimsical storytelling elements.' },
+      { value: 'Disney style', name: 'WalterMouse Animation Style', description: 'Clean lines, exaggerated expressions, and bright, vibrant colors make this style instantly recognizable.' },
+      { value: 'realist style', name: 'Real', description: 'Strives to replicate real-world details with accurate lighting, shadows, and proportions.' },
+      { value: 'minimalism style', name: 'Minimalism', description: 'Uses clean lines, limited color palettes, and negative space to create sleek and modern visuals.' },
+    ];
+
     export default function StoryDetails() {
       const { id } = useParams();
       const navigate = useNavigate();
@@ -135,7 +143,7 @@ import { StoryPDF } from '../components/StoryPDF';
           setIsPlaying(false);
           return;
         }
-
+    
         try {
           const fullText = messages
             .filter(message => showPlayerCharacters || message.type === 'narrator')
@@ -164,7 +172,7 @@ import { StoryPDF } from '../components/StoryPDF';
           setIsPlaying(false);
         }
       }
-
+    
       async function handleCloneStory() {
         if (!user || !story) return;
     
@@ -224,11 +232,13 @@ import { StoryPDF } from '../components/StoryPDF';
           </div>
         );
       }
+
+      const selectedImageStyle = imageStyles.find(style => style.value === story.image_style);
     
       return (
         <div className="min-h-screen flex flex-col">
           <Header />
-          <main className="flex-grow container mx-auto px-4 py-8"> 
+          <main className="flex-grow container mx-auto px-4 py-8">
             <div className="max-w-4xl mx-auto">
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
                 <img
@@ -261,6 +271,13 @@ import { StoryPDF } from '../components/StoryPDF';
                   </div>
 
                   <p className="text-gray-600 dark:text-gray-400 mb-6">{story.description}</p>
+
+                  {selectedImageStyle && (
+                    <div className="mb-6">
+                      <h2 className="text-xl font-semibold mb-2 dark:text-gray-100">Image Style: {selectedImageStyle.name}</h2>
+                      <p className="text-gray-600 dark:text-gray-400">{selectedImageStyle.description}</p>
+                    </div>
+                  )}
 
                   {story.storyMechanics && (
                     <div className="grid grid-cols-1 gap-8 mb-8">
@@ -300,7 +317,7 @@ import { StoryPDF } from '../components/StoryPDF';
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                     <div>
                       <h2 className="text-xl font-semibold mb-4 dark:text-gray-100">Available Classes</h2>
-                      <div className="flex flex-wrap gap-2"> 
+                      <div className="flex flex-wrap gap-2">
                         {(story.characterClasses || []).map((className) => (
                           <span
                             key={className}
@@ -327,161 +344,161 @@ import { StoryPDF } from '../components/StoryPDF';
                   </div>
     
                   <div className="mb-8">
-<h2 className="text-xl font-semibold mb-4 dark:text-gray-100">
-  {story.status === 'completed' ? 'Story Characters' : 'Current Characters'}&nbsp;
-  <span className="px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-    {story.currentAuthors}/{story.maxAuthors}
-  </span>
-</h2>
-                    {story.characters.filter(char => 
-                      story.status === 'completed' ? true : char.status === 'active'
-                    ).length === 0 ? (
-                      <p className="text-gray-500 dark:text-gray-400">
-                        {story.status === 'completed' 
-                          ? 'No characters participated in this story.'
-                          : 'No characters yet. Be the first to join!'}
-                      </p>
-                    ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {story.characters
-                          .filter(char => story.status === 'completed' ? true : char.status === 'active')
-                          .map((character) => (
-                          <div
-                            key={character.id}
-                            className={`flex items-center space-x-3 p-3 rounded-lg ${
-                              character.status === 'archived'
-                                ? 'bg-gray-100 dark:bg-gray-700/50'
-                                : 'bg-gray-50 dark:bg-gray-700/30'
-                            }`}
-                          >
-                            <img
-                              src={character.imageUrl || DEFAULT_CHARACTER_IMAGE}
-                              alt={character.name}
-                              className="w-12 h-12 rounded-full object-cover border dark:border-gray-600"
-                            />
-                            <div>
-                              <h3 className="font-medium dark:text-gray-100">{character.name}</h3>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {character.race} {character.class}
-                                {character.status === 'archived' && ' (Archived)'}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+ <h2 className="text-xl font-semibold mb-4 dark:text-gray-100">
+   {story.status === 'completed' ? 'Story Characters' : 'Current Characters'}&nbsp;
+   <span className="px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+     {story.currentAuthors}/{story.maxAuthors}
+   </span>
+ </h2>
+                     {story.characters.filter(char =>
+                       story.status === 'completed' ? true : char.status === 'active'
+                     ).length === 0 ? (
+                       <p className="text-gray-500 dark:text-gray-400">
+                         {story.status === 'completed'
+                           ? 'No characters participated in this story.'
+                           : 'No characters yet. Be the first to join!'}
+                       </p>
+                     ) : (
+                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                         {story.characters
+                           .filter(char => story.status === 'completed' ? true : char.status === 'active')
+                           .map((character) => (
+                           <div
+                             key={character.id}
+                             className={`flex items-center space-x-3 p-3 rounded-lg ${
+                               character.status === 'archived'
+                                 ? 'bg-gray-100 dark:bg-gray-700/50'
+                                 : 'bg-gray-50 dark:bg-gray-700/30'
+                             }`}
+                           >
+                             <img
+                               src={character.imageUrl || DEFAULT_CHARACTER_IMAGE}
+                               alt={character.name}
+                               className="w-12 h-12 rounded-full object-cover border dark:border-gray-600"
+                             />
+                             <div>
+                               <h3 className="font-medium dark:text-gray-100">{character.name}</h3>
+                               <p className="text-sm text-gray-600 dark:text-gray-400">
+                                 {character.race} {character.class}
+                                 {character.status === 'archived' && ' (Archived)'}
+                               </p>
+                             </div>
+                           </div>
+                         ))}
+                       </div>
+                     )}
+                   </div>
     
-                  {story.status === 'active' && (story.currentAuthors < story.maxAuthors || (user && story.characters.some(char => char.userId === user.id))) && (
-                    <button
-                      onClick={handleJoinStory}
-                      disabled={joiningStory}
-                      className="w-full bg-indigo-600 dark:bg-indigo-700 text-white py-3 px-4 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-800 disabled:opacity-50"
-                    >
-                      {joiningStory ? 'Processing...' :
-                       !user ? 'Sign In to Join Story' :
-                       story.characters.some(char => char.userId === user.id)
-                         ? 'Continue Story'
-                         : 'Join Story'}
-                    </button>
-                  )}
-                  {user && !story.cloned_from && (
-                    <button
-                      onClick={handleCloneStory}
-                      disabled={cloning}
-                      className="w-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 mt-4"
-                    >
-                      {cloning ? 'Cloning...' : 'Clone Story'}
-                    </button>
-                  )}
-                  {story.status === 'completed' && (
-                    <>
-                      <button
-                        onClick={handlePlayStory}
-                        className="w-full bg-indigo-600 dark:bg-indigo-700 text-white py-3 px-4 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-800 disabled:opacity-50 mt-4"
-                      >
-                        {isPlaying ? 'Playing...' : 'Play Story'}
-                      </button>
-                      <BlobProvider document={
-                        <StoryPDF
-                          story={story}
-                          messages={messages}
-                          authors={authors}
-                          showPlayerCharacters={showPlayerCharacters}
-                        />
-                      }>
-                        {({ blob, loading }) => (
-                          <button
-                            onClick={() => {
-                              if (blob) {
-                                const url = URL.createObjectURL(blob);
-                                const link = document.createElement('a');
-                                link.href = url;
-                                link.download = `${story.title.replace(/[^a-z0-9]/gi, '_')}.pdf`;
-                                link.click();
-                                URL.revokeObjectURL(url);
-                              }
-                            }}
-                            className="w-full bg-green-600 dark:bg-green-700 text-white py-3 px-4 rounded-md hover:bg-green-700 dark:hover:bg-green-800 disabled:opacity-50 mt-4"
-                            disabled={loading}
-                          >
-                            {loading ? 'Preparing PDF...' : 'Export to PDF'}
-                          </button>
-                        )}
-                      </BlobProvider>
-                    </>
-                  )}
+                   {story.status === 'active' && (story.currentAuthors < story.maxAuthors || (user && story.characters.some(char => char.userId === user.id))) && (
+                     <button
+                       onClick={handleJoinStory}
+                       disabled={joiningStory}
+                       className="w-full bg-indigo-600 dark:bg-indigo-700 text-white py-3 px-4 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-800 disabled:opacity-50"
+                     >
+                       {joiningStory ? 'Processing...' :
+                        !user ? 'Sign In to Join Story' :
+                        story.characters.some(char => char.userId === user.id)
+                          ? 'Continue Story'
+                          : 'Join Story'}
+                     </button>
+                   )}
+                   {user && !story.cloned_from && (
+                     <button
+                       onClick={handleCloneStory}
+                       disabled={cloning}
+                       className="w-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 mt-4"
+                     >
+                       {cloning ? 'Cloning...' : 'Clone Story'}
+                     </button>
+                   )}
+                   {story.status === 'completed' && (
+                     <>
+                       <button
+                         onClick={handlePlayStory}
+                         className="w-full bg-indigo-600 dark:bg-indigo-700 text-white py-3 px-4 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-800 disabled:opacity-50 mt-4"
+                       >
+                         {isPlaying ? 'Playing...' : 'Play Story'}
+                       </button>
+                       <BlobProvider document={
+                         <StoryPDF
+                           story={story}
+                           messages={messages}
+                           authors={authors}
+                           showPlayerCharacters={showPlayerCharacters}
+                         />
+                       }>
+                         {({ blob, loading }) => (
+                           <button
+                             onClick={() => {
+                               if (blob) {
+                                 const url = URL.createObjectURL(blob);
+                                 const link = document.createElement('a');
+                                 link.href = url;
+                                 link.download = `${story.title.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+                                 link.click();
+                                 URL.revokeObjectURL(url);
+                               }
+                             }}
+                             className="w-full bg-green-600 dark:bg-green-700 text-white py-3 px-4 rounded-md hover:bg-green-700 dark:hover:bg-green-800 disabled:opacity-50 mt-4"
+                             disabled={loading}
+                           >
+                             {loading ? 'Preparing PDF...' : 'Export to PDF'}
+                           </button>
+                         )}
+                       </BlobProvider>
+                     </>
+                   )}
 
-                </div>
-                
-                {/* Story Messages - Only shown for completed stories */}
-                {story.status === 'completed' && (
-                  <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-                    <div className="p-6 border-b">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h2 className="text-xl font-semibold dark:text-gray-100">Story Chronicle</h2>
-                          <p className="text-gray-600 dark:text-gray-400 mt-2">
-                            The complete tale of this epic adventure, from beginning to end.
-                          </p>
-                        </div>
-                        <label className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={showPlayerCharacters}
-                            onChange={(e) => setShowPlayerCharacters(e.target.checked)}
-                            className="rounded text-indigo-600 focus:ring-indigo-500"
-                          />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
-                            Show Character Actions
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-                    <div className="divide-y">
-                      {messages
-                        .filter(message => showPlayerCharacters || message.type === 'narrator')
-                        .map((message, index) => (
-                        <StoryMessage
-                          key={message.id}
-                          content={message.content}
-                          type={message.type}
-                          character={message.characterId ? story.characters.find(c => c.id === message.characterId) : undefined}
-                          timestamp={message.createdAt}
-                          messageIndex={message.type === 'narrator' ? index + 1 : undefined}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </main>
-          <Footer />
-          <AuthModal
-            isOpen={showAuthModal}
-            onClose={() => setShowAuthModal(false)}
-          />
-        </div>
-      );
-    }
+                 </div>
+                 
+                 {/* Story Messages - Only shown for completed stories */}
+                 {story.status === 'completed' && (
+                   <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                     <div className="p-6 border-b">
+                       <div className="flex items-center justify-between">
+                         <div>
+                           <h2 className="text-xl font-semibold dark:text-gray-100">Story Chronicle</h2>
+                           <p className="text-gray-600 dark:text-gray-400 mt-2">
+                             The complete tale of this epic adventure, from beginning to end.
+                           </p>
+                         </div>
+                         <label className="flex items-center space-x-2">
+                           <input
+                             type="checkbox"
+                             checked={showPlayerCharacters}
+                             onChange={(e) => setShowPlayerCharacters(e.target.checked)}
+                             className="rounded text-indigo-600 focus:ring-indigo-500"
+                           />
+                           <span className="text-sm text-gray-600 dark:text-gray-400">
+                             Show Character Actions
+                           </span>
+                         </label>
+                       </div>
+                     </div>
+                     <div className="divide-y">
+                       {messages
+                         .filter(message => showPlayerCharacters || message.type === 'narrator')
+                         .map((message, index) => (
+                         <StoryMessage
+                           key={message.id}
+                           content={message.content}
+                           type={message.type}
+                           character={message.characterId ? story.characters.find(c => c.id === message.characterId) : undefined}
+                           timestamp={message.createdAt}
+                           messageIndex={message.type === 'narrator' ? index + 1 : undefined}
+                         />
+                       ))}
+                     </div>
+                   </div>
+                 )}
+               </div>
+             </div>
+           </main>
+           <Footer />
+           <AuthModal
+             isOpen={showAuthModal}
+             onClose={() => setShowAuthModal(false)}
+           />
+         </div>
+       );
+     }
