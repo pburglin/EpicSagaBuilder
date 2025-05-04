@@ -65,15 +65,103 @@ async function summarizeMessages(messages: LLMMessage[]): Promise<string> {
 function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
 }
+async function extractKeyFacts(messages: LLMMessage[]): Promise<string> {
+  if (messages.length === 0) return '';
 
-// Implement new context management functions here
-// async function extractKeyFacts(messages: LLMMessage[]): Promise<string> { ... }
-// async function compressMessageBuffer(messages: LLMMessage[]): Promise<LLMMessage[]> { ... }
+  const prompt = `Review the following conversation history and extract the most crucial, enduring facts about the story, characters, and world. Focus on details that are essential for maintaining continuity and understanding the core narrative. Summarize these facts concisely.\n\nConversation:\n${messages.map(msg => `${msg.role}: ${msg.content}`).join('\n')}\n\nExtracted Core Facts:`;
+
+  const requestPayload = {
+    model: import.meta.env.VITE_LLM_MODEL_NAME,
+    messages: [{ role: 'user', content: prompt }],
+    max_tokens: Number(import.meta.env.VITE_LLM_SUMMARY_TOKENS || 512),
+    temperature: Number(import.meta.env.VITE_LLM_STORY_TEMPERATURE || 0.7),
+  };
+
+  try {
+    const response = await fetch(import.meta.env.VITE_LLM_API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + import.meta.env.VITE_LLM_API_KEY
+      },
+      body: JSON.stringify(requestPayload)
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('❌ LLM Error Response (extractKeyFacts):', {
+        status: response.status,
+        statusText: response.statusText,
+        error
+      });
+      throw new Error(`Failed to extract key facts: ${error}`);
+    }
+
+    const data: LLMResponse = await response.json();
+    const content = data.choices[0]?.message.content;
+    if (!content) {
+      console.error('❌ LLM Response Error (extractKeyFacts): No content in response');
+      throw new Error('No content in response');
+    }
+    return content;
+  } catch (error) {
+    console.error('Error extracting key facts:', error);
+    // Return empty string or handle error appropriately
+    return '';
+  }
+}
+
+async function compressMessageBuffer(messages: LLMMessage[]): Promise<LLMMessage[]> {
+  if (messages.length === 0) return [];
+
+  const prompt = `Summarize the following conversation messages into a concise narrative chunk that captures the key events and outcomes. This summary will be used to provide context to the AI for future interactions. Keep the summary brief and focused on plot progression and important character actions.\n\nMessages to Summarize:\n${messages.map(msg => `${msg.role}: ${msg.content}`).join('\n')}\n\nSummary:`;
+
+  const requestPayload = {
+    model: import.meta.env.VITE_LLM_MODEL_NAME,
+    messages: [{ role: 'user', content: prompt }],
+    max_tokens: Number(import.meta.env.VITE_LLM_SUMMARY_TOKENS || 512),
+    temperature: Number(import.meta.env.VITE_LLM_STORY_TEMPERATURE || 0.7),
+  };
+
+  try {
+    const response = await fetch(import.meta.env.VITE_LLM_API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + import.meta.env.VITE_LLM_API_KEY
+      },
+      body: JSON.stringify(requestPayload)
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('❌ LLM Error Response (compressMessageBuffer):', {
+        status: response.status,
+        statusText: response.statusText,
+        error
+      });
+      throw new Error(`Failed to compress message buffer: ${error}`);
+    }
+
+    const data: LLMResponse = await response.json();
+    const content = data.choices[0]?.message.content;
+    if (!content) {
+      console.error('❌ LLM Response Error (compressMessageBuffer): No content in response');
+      throw new Error('No content in response');
+    }
+    // Return the summary as a single message
+    return [{ role: 'assistant', content: `Summary of previous events: ${content}` }];
+  } catch (error) {
+    console.error('Error compressing message buffer:', error);
+    // Return empty array or handle error appropriately
+    return [];
+  }
+}
 
 async function getMessageHistory(): Promise<LLMMessage[]> {
   const messagesToSend: LLMMessage[] = [];
   // Allow some buffer to avoid exceeding the token limit exactly
-  const maxTokens = Number(import.meta.env.VITE_LLM_MAX_TOKENS || 1024) * 0.9; 
+  const maxTokens = Number(import.meta.env.VITE_LLM_MAX_TOKENS || 1024) * 0.9;
   let currentTokenCount = 0;
 
   // 1. Add System Prompt (always included)
@@ -143,24 +231,47 @@ async function addMessageToHistory(message: LLMMessage): Promise<void> {
     totalMessages: recentMessageBuffer.length
   });
 
-  // TODO: Implement logic to manage recentMessageBuffer size and create summarized chunks
-  // For now, a simple trimming to a fixed size
+  // Implement logic to manage recentMessageBuffer size and create summarized chunks
   const maxRecentMessages = 20; // Example: Keep up to 20 recent messages
+  const maxSummarizedChunks = 5; // Example: Keep up to 5 summarized chunks
+
   if (recentMessageBuffer.length > maxRecentMessages) {
-    // Keep the system message and the most recent messages
-    const systemMessage = recentMessageBuffer.find(msg => msg.role === 'system');
-    const messagesToKeep = systemMessage ? [systemMessage, ...recentMessageBuffer.slice(-(maxRecentMessages - 1))] : recentMessageBuffer.slice(-maxRecentMessages);
-    
-    // TODO: Summarize the removed messages and add to summarizedChunks
-    const removedMessages = recentMessageBuffer.slice(systemMessage ? 1 : 0, -(maxRecentMessages - (systemMessage ? 1 : 0)));
-    if (removedMessages.length > 0) {
-      console.log(`Need to summarize ${removedMessages.length} old messages.`);
-      // This is where the summarize/extract key facts logic would be called
-      // For now, just discard them
+    // Identify messages to summarize (excluding the system message)
+    const systemMessageIndex = recentMessageBuffer.findIndex(msg => msg.role === 'system');
+    const messagesToSummarize = recentMessageBuffer.slice(systemMessageIndex + 1, recentMessageBuffer.length - (maxRecentMessages - (systemMessageIndex !== -1 ? 1 : 0)));
+
+    if (messagesToSummarize.length > 0) {
+      console.log(`Summarizing ${messagesToSummarize.length} old messages.`);
+      const summary = await compressMessageBuffer(messagesToSummarize);
+      summarizedChunks.push(...summary.map(s => s.content)); // Add content of summary messages
+      console.log(`Added a new summarized chunk. Total chunks: ${summarizedChunks.length}`);
+
+      // Trim summarized chunks if necessary (keep oldest)
+      if (summarizedChunks.length > maxSummarizedChunks) {
+        summarizedChunks = summarizedChunks.slice(-maxSummarizedChunks);
+        console.log(`Trimmed summarizedChunks to ${summarizedChunks.length} chunks.`);
+      }
     }
 
+    // Keep the system message and the most recent messages after summarization
+    const messagesToKeep = systemMessageIndex !== -1 ? [recentMessageBuffer[systemMessageIndex], ...recentMessageBuffer.slice(-(maxRecentMessages - 1))] : recentMessageBuffer.slice(-maxRecentMessages);
     recentMessageBuffer = messagesToKeep;
     console.log(`Trimmed recentMessageBuffer to ${recentMessageBuffer.length} messages.`);
+  }
+
+  // Periodically update core story facts based on summarized chunks and recent messages
+  // This is a simplified approach; a more sophisticated method might analyze content for key changes
+  if (summarizedChunks.length > 0 || recentMessageBuffer.length > (maxRecentMessages / 2)) { // Update condition
+    const allContextMessages = [
+      ...recentMessageBuffer.filter(msg => msg.role !== 'system'), // Exclude system prompt for fact extraction
+      ...summarizedChunks.map(chunk => ({ role: 'assistant' as const, content: chunk }))
+    ];
+    const newCoreFacts = await extractKeyFacts(allContextMessages);
+    if (newCoreFacts && newCoreFacts !== coreStoryFacts) {
+      coreStoryFacts = newCoreFacts;
+      updateStoryContext(storyId, coreStoryFacts); // Save updated facts to DB
+      console.log('Updated core story facts.');
+    }
   }
 }
 
@@ -204,10 +315,10 @@ export async function aiOptimize(input: string): Promise<string> {
   }
 }
 
-async function generateImageFromText(text: string): Promise<string> {
+async function generateImageFromText(text: string, style: string = 'anime style'): Promise<string> {
   const imagePromptMaxChars = Number(import.meta.env.VITE_IMAGE_PROMPT_MAX_CHARS || 1024);
   const truncatedText = text.length > imagePromptMaxChars ? text.substring(0, imagePromptMaxChars) : text;
-  const imagePrompt = `https://image.pollinations.ai/prompt/anime style ${truncatedText}`;
+  const imagePrompt = `https://image.pollinations.ai/prompt/${style} ${truncatedText}`;
   console.log('imagePrompt: ', imagePrompt);
   return imagePrompt;
 }
@@ -299,3 +410,4 @@ export async function generateNarration(prompt: string): Promise<{ text: string;
     return { text: 'An error occurred while generating the narration. Please try again later.' };
   }
 }
+
