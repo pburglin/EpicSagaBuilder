@@ -14,6 +14,7 @@ import { subscribeToStoryMessages } from '../lib/supabase-realtime';
 import { loadStoryWithCharacters, loadStoryMessages, completeStory, sendCharacterMessage, restartStory } from '../lib/story-service';
 import { archiveCharacter } from '../lib/character-service';
 import { getProfile } from '../lib/user-service';
+import Footer from '../components/Footer'; // Ensure Footer is imported
 
 import type { Message } from '../types';
 
@@ -57,7 +58,7 @@ export default function StorySession() {
 
   const scrollToBottom = () => {
     if (!autoScrollRef.current || !messagesContainerRef.current) return;
-    
+
     const container = messagesContainerRef.current;
     if (container) {
       container.scrollTop = container.scrollHeight;
@@ -107,45 +108,46 @@ export default function StorySession() {
 
   useEffect(() => {
     if (!user) return;
-    
+
     async function initialize() {
       console.log('Initializing StorySession with:', { userId: user!.id, storyId: id });
-      
+
       try {
         const loadedStory = await loadStoryWithCharacters(id!, true);
         //console.log('Loaded story:', loadedStory);
         setStory(loadedStory);
-        
+        console.log('Loaded story image style:', loadedStory.image_style); // Add logging
+
         // Initialize characters map
         storyCharactersRef.current = new Map(
           loadedStory.characters.map(char => [char.id, char])
         );
-        
+
         // Initialize session manager
         const manager = new StorySessionManager(loadedStory);
         await manager.initialize();
         sessionManagerRef.current = manager;
-        
+
         const userCharacter = loadedStory.characters.find(char => char.userId === user!.id);
         //console.log('Found user character:', userCharacter);
-        
+
         if (userCharacter) {
           setCharacter(userCharacter);
         } else {
           console.error('No character found for user in this story');
           setError('No character found for user in this story');
         }
-        
+
         const loadedMessages = await loadStoryMessages(id!);
         //console.log('Loaded messages:', loadedMessages);
         setMessages(loadedMessages);
-        
+
         // Set up real-time subscription
         subscriptionRef.current = subscribeToStoryMessages(
           id!,
           (newMessage) => {
             console.log('Received new message:', newMessage);
-            //console.log('newMessage.character_id:', newMessage.character_id);
+            //console.log('newMessage.characterId:', newMessage.characterId); // Corrected casing
 
             setMessages(prev => {
               // Check if message already exists
@@ -153,12 +155,12 @@ export default function StorySession() {
                 console.log('Message already exists:', newMessage.id);
                 return prev;
               }
-              
+
               // Enhance message with character details if needed
               const enhancedMessage = {
                 ...newMessage,
-                character: newMessage.character_id
-                  ? storyCharactersRef.current.get(newMessage.character_id)
+                character: newMessage.characterId // Corrected casing
+                  ? storyCharactersRef.current.get(newMessage.characterId) // Corrected casing
                   : undefined
               };
 
@@ -170,7 +172,7 @@ export default function StorySession() {
                   speakText(enhancedMessage.content);
                 }, 100);
               }
-              
+
               // Sort messages by timestamp
               return [...prev, enhancedMessage].sort(
                 (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
@@ -193,7 +195,7 @@ export default function StorySession() {
         setLoading(false);
       }
     }
-    
+
     initialize();
   }, [id, user]);
 
@@ -205,7 +207,7 @@ export default function StorySession() {
 
     try {
       await sessionManagerRef.current.submitAction(character, content);
-      
+
       // Only re-enable if waiting for this character's next action
       if (sessionManagerRef.current.isWaitingForAction(character.id)) {
         setIsActionEnabled(true);
@@ -224,10 +226,10 @@ export default function StorySession() {
 
   async function handleCompleteStory() {
     if (!story || !character || !sessionManagerRef.current) return;
-    
+
     setIsActionEnabled(false);
 
-    const confirmMessage = 
+    const confirmMessage =
       'Are you sure you want to mark this story as completed?\n\n' +
       'This will generate an epic finale and permanently close the story for further actions.';
 
@@ -238,9 +240,9 @@ export default function StorySession() {
 
         // Mark the story as completed
         await completeStory(story.id);
-        
+
         // Update local story status
-        setStory(prevStory => 
+        setStory(prevStory =>
           prevStory ? { ...prevStory, status: 'completed' } : null
         );
 
@@ -248,7 +250,7 @@ export default function StorySession() {
         const archivePromises = story.characters
           .filter(char => char.status === 'active')
           .map(char => archiveCharacter(char.id, story.id));
-        
+
         await Promise.all(archivePromises);
 
         // Redirect to story details page
@@ -264,17 +266,17 @@ export default function StorySession() {
 
   async function handleLeaveStory() {
     if (!character || !story || !user) return;
-    
+
     const confirmMessage =
       'Are you sure you want to leave this story?\n\n' +
       'WARNING: Leaving will delete your character. If you want to rejoin the story later, ' +
       'you will need to create a new character.';
-    
+
     if (window.confirm(confirmMessage)) {
       try {
         // Send the leaving message
         await sendCharacterMessage(story.id, character.id, 'leaves the party');
-        
+
         // Archive the character and navigate
         await archiveCharacter(character.id, story.id);
         navigate(`/stories/${story.id}`);
@@ -286,12 +288,12 @@ export default function StorySession() {
 
   async function handleRestartStory() {
     if (!story) return;
-    
-    const confirmMessage = 
+
+    const confirmMessage =
       'Are you sure you want to restart this story?\n\n' +
       'WARNING: This will delete all story progress except for the initial setup. ' +
       'This action cannot be undone.';
-    
+
     if (window.confirm(confirmMessage)) {
       try {
         await restartStory(story.id);
@@ -344,7 +346,7 @@ export default function StorySession() {
           </div>
         </main>
       </div>
-   );
+    );
   }
 
   return (
@@ -410,8 +412,8 @@ export default function StorySession() {
               </div>
             </div>
 
-            <div 
-              className="bg-white rounded-lg shadow-lg overflow-y-auto flex flex-col-reverse" 
+            <div
+              className="bg-white rounded-lg shadow-lg overflow-y-auto flex flex-col-reverse"
               style={{ height: '60vh' }}
               ref={messagesContainerRef}
             >
@@ -459,6 +461,7 @@ export default function StorySession() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

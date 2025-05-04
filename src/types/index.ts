@@ -17,6 +17,7 @@ export interface Story {
   is_private: boolean;
   created_by?: string;
   cloned_from?: string;
+  image_style?: string; // Add image style property
 }
 
 export interface Character {

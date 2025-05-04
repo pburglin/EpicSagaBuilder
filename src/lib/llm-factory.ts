@@ -6,7 +6,7 @@ import { generateSystemPrompt } from './llm-prompts';
 export class LLMFactory {
   static async create(story: Story) {
     const useMock = import.meta.env.VITE_USE_MOCK_LLM === 'true';
-    
+
     if (useMock) {
       console.log('Using Mock LLM Service');
       return new MockLLM(story);
@@ -16,7 +16,8 @@ export class LLMFactory {
     await initializeMessageHistory(generateSystemPrompt(story), story.id);
     return {
       generateResponse: async (type: 'action' | 'finale', prompt: string) => {
-        return generateNarration(prompt);
+        // Pass the image style from the story object, defaulting if undefined
+        return generateNarration(prompt, story.image_style || 'anime style');
       }
     };
   }

@@ -74,6 +74,7 @@ export async function loadStoryWithCharacters(
     is_private: data.is_private || false,
     storyMechanics: data.story_mechanics,
     storyContext: data.story_context,
+    image_style: data.image_style, // Add image_style mapping
     characters
   };
 }
@@ -124,6 +125,7 @@ export async function getFeaturedStories(limit: number = 3): Promise<Story[]> {
     is_private: story.is_private || false,
     storyMechanics: story.story_mechanics,
     storyContext: story.story_context,
+    image_style: story.image_style, // Add image_style mapping
     characters: ((story.characters as DatabaseCharacter[]) || [])
       .filter((char) => char.status === 'active')
       .map((char) => ({
@@ -363,10 +365,6 @@ export async function updateStoryContext(storyId: string, context: string): Prom
     .from('stories')
     .update({ story_context: context })
     .eq('id', storyId);
-
-  if (error) {
-    throw new Error('Failed to update story context');
-  }
 }
 
 export async function recordPlayerAction(roundId: string, characterId: string): Promise<void> {

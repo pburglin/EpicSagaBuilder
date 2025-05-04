@@ -323,7 +323,7 @@ async function generateImageFromText(text: string, style: string = 'anime style'
   return imagePrompt;
 }
 
-export async function generateNarration(prompt: string): Promise<{ text: string; imageUrl?: string }> {
+export async function generateNarration(prompt: string, style: string = 'anime style'): Promise<{ text: string; imageUrl?: string }> {
   // Add user prompt to history first
   await addMessageToHistory({ role: 'user', content: prompt });
   
@@ -396,7 +396,7 @@ export async function generateNarration(prompt: string): Promise<{ text: string;
 
     let imageUrl: string | undefined;
     try {
-      imageUrl = await generateImageFromText(content);
+      imageUrl = await generateImageFromText(content, style);
       console.log('Generated image URL:', imageUrl);
     } catch (error) {
       console.error('Error generating image:', error);

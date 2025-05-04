@@ -37,19 +37,22 @@ export class MockLLM {
     this.story = story;
   }
 
-  async generateResponse(type: 'action' | 'finale'): Promise<{ text: string; imageUrl?: string }> {
+  async generateResponse(type: 'action' | 'finale', style: string = 'anime style'): Promise<{ text: string; imageUrl?: string }> {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     if (type === 'finale') {
       return {
         text: this.generateFinaleResponse(),
-        imageUrl: 'https://example.com/finale-image.jpg'
+        // Use the provided style in the mock image URL
+        imageUrl: `https://example.com/finale-image-${style.replace(/\s+/g, '-')}.jpg`
       };
     }
 
     return {
-      text: this.generateActionResponse()
+      text: this.generateActionResponse(),
+      // Use the provided style in the mock image URL for actions too
+      imageUrl: `https://example.com/action-image-${style.replace(/\s+/g, '-')}.jpg`
     };
   }
 

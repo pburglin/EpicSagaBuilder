@@ -24,7 +24,8 @@ export default function CreateStory() {
     characterClasses: '',
     characterRaces: '',
     isPrivate: false,
-    storyMechanics: ''
+    storyMechanics: '',
+    imageStyle: 'anime style' // Default style
   });
 
   async function handleOptimizeDescription() {
@@ -119,7 +120,8 @@ export default function CreateStory() {
         character_races: formData.characterRaces.split(',').map(s => s.trim()),
         is_private: formData.isPrivate,
         created_by: user.id,
-        story_mechanics: formData.storyMechanics
+        story_mechanics: formData.storyMechanics,
+        image_style: formData.imageStyle // Add image style to database insert
       })
       .select()
       .single();
@@ -144,7 +146,7 @@ export default function CreateStory() {
     navigate('/stories');
   }
 
-  function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -306,6 +308,25 @@ export default function CreateStory() {
                 className="w-full px-3 py-2 border rounded-md"
                 placeholder="https://example.com/image.jpg"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Story Scene Image Style
+              </label>
+              <select
+                name="imageStyle"
+                value={formData.imageStyle}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border rounded-md"
+                required
+              >
+                <option value="anime style">Anime Style – Inspired by Japanese animation, this style features expressive characters, vibrant colors, and dramatic shading.</option>
+                <option value="Studio Ghibli style">Ghibliesque Style – Known for its soft color palettes, lush backgrounds, and whimsical storytelling elements.</option>
+                <option value="Disney style">WalterMouse Animation Style – Clean lines, exaggerated expressions, and bright, vibrant colors make this style instantly recognizable.</option>
+                <option value="realist style">Real – Strives to replicate real-world details with accurate lighting, shadows, and proportions.</option>
+                <option value="minimalism style">Minimalism – Uses clean lines, limited color palettes, and negative space to create sleek and modern visuals.</option>
+              </select>
             </div>
 
             <div>
